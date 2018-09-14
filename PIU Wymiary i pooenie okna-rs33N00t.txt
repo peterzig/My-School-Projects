@@ -1,0 +1,139 @@
+#include <windows.h>
+#include <stdio.h>
+
+TCHAR ClassName[] = TEXT("Klasa");
+int okna = 0;
+HWND NoweOkno;
+RECT R;
+unsigned int W, S;
+
+static void Rysuj(const HWND okno123)
+{
+	HDC Kontekst;
+	PAINTSTRUCT Informacje;
+	static const size_t txt_size = 64;
+
+	Kontekst = BeginPaint(okno123, &Informacje);
+	GetClientRect(okno123, &R);
+
+	wchar_t txt[64];
+	wchar_t txt2[64];
+
+	swprintf(txt, txt_size, TEXT("Rozmiar: %i, %i"), R.right, R.bottom);
+	swprintf(txt2, txt_size, TEXT("Pozycja: %i x %.2i "), W, S);
+
+	SetTextColor(Kontekst, RGB(0, 255, 0));
+	SetBkColor(Kontekst, RGB(20, 0, 20));
+
+	TextOut(Kontekst, 5, 5, txt, wcslen(txt));
+	TextOut(Kontekst, 5, 50, txt2, wcslen(txt2));
+
+	EndPaint(okno123, &Informacje);
+}
+
+LRESULT CALLBACK WndProc(HWND okno, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+	case WM_PAINT:
+		Rysuj(okno);
+		break;
+	case WM_CREATE:
+		++okna;
+		UpdateWindow(okno);
+		break;
+	case WM_SIZE:
+		InvalidateRect(okno, &R, 1);
+		break;
+	case WM_MOVE:
+		InvalidateRect(okno, &R, 1);
+		W = LOWORD(lParam);
+		S = HIWORD(lParam);
+		break;
+	case WM_LBUTTONDOWN:
+		NoweOkno = CreateWindowEx(0, ClassName, TEXT("Nowe Okno"), WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, 0, 0, GetModuleHandle(0), 0);
+		ShowWindow(NoweOkno, SW_SHOW);
+		UpdateWindow(NoweOkno);
+		break;
+	case WM_DESTROY:
+		if (okna == 0)
+		{
+			MessageBox(0, TEXT("KONIEC!"), TEXT(""), MB_OK);
+			PostQuitMessage(0);
+		}
+		break;
+	case WM_CLOSE:
+		if (MessageBox(0, L"Zamknac to okno?", L"", MB_YESNO | MB_ICONQUESTION) == IDYES)
+		{
+			okna--;
+			DestroyWindow(okno);
+		}
+		break;
+	default:
+		return DefWindowProc(okno, msg, wParam, lParam);
+		break;
+	}
+	return 0;
+}
+
+static int RejestrujKlase()
+{
+	WNDCLASSEX wc;
+	wc.cbClsExtra = 0;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.cbWndExtra = 0;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.hCursor = 0;
+	wc.hIcon = 0;
+	wc.hIconSm = 0;
+	wc.hInstance = GetModuleHandle(0);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = ClassName;
+	wc.lpszMenuName = 0;
+	wc.style = 0;
+	if (!RegisterClassEx(&wc))return 0;
+}
+
+static void WyrejestrujKlase()
+{
+	UnregisterClass(ClassName, GetModuleHandle(0));
+}
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLIne, int nShowCmd)
+{
+	HWND okno1;
+	HWND okno2;
+	HWND okno3;
+	MSG msg;
+
+	if (!RejestrujKlase())
+	{
+		MessageBox(0, TEXT("Nie udało się zarejestrować klasy okna!"), TEXT("UWAGA"), MB_ICONSTOP | MB_OK);
+		return 1;
+	}
+
+	okno1 = CreateWindowEx(0, ClassName, L"Okno1", WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, 0, 0, hInstance, 0);
+	ShowWindow(okno1, nShowCmd);
+	UpdateWindow(okno1);
+
+	okno2 = CreateWindowEx(0, ClassName, L"Okno2", WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, 0, 0, hInstance, 0);
+	ShowWindow(okno2, nShowCmd);
+	UpdateWindow(okno2);
+
+	okno3 = CreateWindowEx(0, ClassName, L"Okno3", WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, 0, 0, hInstance, 0);
+	ShowWindow(okno3, nShowCmd);
+	UpdateWindow(okno3);
+
+
+	while (GetMessage(&msg, 0, 0, 0)>0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	UnregisterClass(ClassName, hInstance);
+
+
+	WyrejestrujKlase();
+	return 0;
+}

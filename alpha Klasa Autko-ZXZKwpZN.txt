@@ -1,0 +1,49 @@
+// [klasy]autko.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <iostream>
+#include <string>
+#include <time.h> 
+
+using namespace std;
+
+class Auto {
+public:
+	string nazwa;
+	int rocznik;
+	int przebieg;
+	string kraj;
+	string paliwo;
+	string kolor;
+};
+
+int main()
+{
+	srand(time(NULL));
+	Auto Car;
+	Car.przebieg = rand() % 300000 + 150000;
+	Car.kraj = "Holandia";
+	Car.nazwa = "Audi A5";
+	Car.rocznik = rand() % 5 + 2008;
+	Car.paliwo = "Diesel";
+	for (int i = 0; i < 20; i++) { cout << "--"; }
+	cout << "\n|";
+	for (int i = 0; i < 6; i++) { cout << "  "; }
+	cout << "Nazwa: " << Car.nazwa ; 
+	for (int i = 0; i < 6; i++) { cout << "  "; }
+	cout << "|\n";
+	for (int i = 0; i < 20; i++) { cout << "--"; }
+	cout << "\n|";
+	for (int i = 0; i < 5; i++) { cout << "  "; }
+	cout << "Cena : 69 999 PLN ";
+	for (int i = 0; i < 5; i++) { cout << "  "; }
+	cout << "|\n";
+	for (int i = 0; i < 20; i++) { cout << "--"; }
+	cout << "\nRocznik: " << Car.rocznik << "\nPrzebieg: " << Car.przebieg << "\nKraj pochodzenia:" << Car.kraj << "\nPaliwo: " << Car.paliwo << endl;
+	cout << "Sprzedajacy: Tomasz , 737340315"<<endl;
+	for (int i = 0; i < 20; i++) { cout << "--"; }
+	_getch();
+    return 0;
+}

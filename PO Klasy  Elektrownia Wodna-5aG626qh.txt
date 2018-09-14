@@ -1,0 +1,134 @@
+// [PO] Klasy - Elektrownia Wodna.cpp : Defines the entry point for the console application.
+//
+
+#include <iostream>
+#include <conio.h>
+#include <stdlib.h>
+
+using namespace std;
+
+class Elektrownia
+{
+private:
+	int ilosc_mocy;
+	int poziom_wody;
+	int moc_turbina1, moc_turbina2, moc_turbina3, moc_turbina4, woda_turbina1, woda_turbina2, woda_turbina3, woda_turbina4;
+	int liczba;
+
+public:
+	Elektrownia(int turbina1woda, int turbina2woda, int turbina3woda, int turbina4woda, int turbina1moc, int turbina2moc, int turbina3moc, int turbina4moc);
+	int WodaDoTurbiny(int Woda, int turbina1woda, int turbina2woda, int turbina3woda, int turbina4woda, int numer);
+	int ObliczMoc(int Moc, int Woda);
+	int AutoMoc(int Moc, int Woda);
+	
+
+};
+
+Elektrownia::Elektrownia(int turbina1woda, int turbina2woda, int turbina3woda, int turbina4woda, int turbina1moc, int turbina2moc, int turbina3moc, int turbina4moc)
+{
+	turbina1moc = 0;
+	turbina2moc = 0;
+	turbina3moc = 0;
+	turbina4moc = 0;
+	turbina1woda = 100;
+	turbina2woda = 100;
+	turbina3woda = 100;
+	turbina4woda = 100;
+}
+
+int Elektrownia::WodaDoTurbiny(int Woda, int turbina1woda, int turbina2woda, int turbina3woda, int turbina4woda, int numer)
+{
+	//to nie dziala tak jak powinno. powinnam napisac inna metode osobno do kazdej turbiny ale mi sie juz nie chce
+	if (numer == 1)
+	{
+		Woda = turbina1woda;
+		return turbina1woda;
+	}
+	if (numer == 2)
+	{
+		Woda = turbina2woda;
+		return Woda;
+	}
+	if (numer == 3)
+	{
+		Woda = turbina3woda;
+		return Woda;
+	}
+	if (numer == 4)
+		{
+			Woda = turbina4woda;
+			return Woda;
+		}
+	}
+
+
+int Elektrownia::ObliczMoc(int Moc, int Woda)
+{
+	cout << "Tu sie ma obliczac ta moc ale nie mam pomyslu jak to zrobic. Jakims wzorem czy co?" << endl;
+	return 0;
+}
+
+
+int Elektrownia::AutoMoc(int Moc, int Woda)
+{
+	cout << "Skoro nie wiem jak policzyc moc no to tego tez nie zrobie" << endl;
+	return 0;
+
+}
+
+
+
+
+int main()
+{
+	cout << "Witaj w symulatorze elektrowni wodnej! Okresl co chcialbys zrobic." << endl;
+	cout << "Na start poziom zamkniecia turbin wynosi 100%, a produkowana energia wynosi 0." << endl << endl;
+
+	int wybor, zamkniecie, moc, woda, liczba;
+	int turbina1woda, turbina2woda, turbina3woda, turbina4woda, turbina1moc, turbina2moc, turbina3moc, turbina4moc;
+
+	Elektrownia elektro(int turbina1woda, int turbina2woda, int turbina3woda, int turbina4woda, int turbina1moc, int turbina2moc, int turbina3moc, int turbina4moc);
+
+	cout << "1.Ustalenie poziomu doplywu wody do turbiny.\n2.Obliczenie mocy produkowanej przez turbiny.\n3.Automatycznie dopasowanie poziomu doplywu wody do turbin wedlug podanej mocy." << endl;
+
+	cin >> wybor;
+	switch (wybor)
+	{
+	case 1:
+	{
+		cout << "1.Turbina 1.\n2.Turbina 2.\n3.Turbina 3.\n4.Turbina 4." << endl;
+		int wybor2;
+		cin >> wybor2;
+		switch (wybor2)
+		{
+		case 1:
+		{
+			cout << "Podaj procent zamkniecia turbiny" << endl;
+			cin >> woda;
+			cout << "Moc turbiny 1 wynosi: "; //<< elektro.WodaDoTurbiny(woda, turbina1woda, turbina2woda, turbina3woda, turbina4woda, wybor2) << endl;
+		}; break;
+		case 2: {
+			cout << "Podaj procent zamkniecia turbiny" << endl;
+			cin >> woda;
+			cout << "Procent zamkniecia turbiny 2 wynosi: ";//<< elektro.WodaDoTurbiny(woda, turbina1woda, turbina2woda, turbina3woda, turbina4woda, wybor2) << endl;
+		}; break;
+		case 3: {
+			cout << "Podaj procent zamkniecia turbiny" << endl;
+			cin >> woda;
+			cout << "Procent zamkniecia turbiny 3 wynosi: "; //<< elektro.WodaDoTurbiny(woda, turbina1woda, turbina2woda, turbina3woda, turbina4woda, wybor2) << endl;
+		}; break;
+		case 4: {
+			cout << "Podaj procent zamkniecia turbiny" << endl;
+			cin >> woda;
+			cout << "Procent zamkniecia turbiny 4 wynosi: "; //<< elektro.WodaDoTurbiny(woda, turbina1woda, turbina2woda, turbina3woda, turbina4woda, wybor2) << endl;
+		}; break;
+		default: cout << "Podano zly numer!" << endl;
+		}
+	}; break;
+	case 2: break;
+	case 3: break;
+	default: cout << "Podano zly numer!" << endl;
+	}
+	_getch();
+	return 0;
+}

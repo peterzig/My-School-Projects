@@ -1,0 +1,108 @@
+// sortowanie.cpp : Defines the entry point for the console application.
+//
+
+#include <stdio.h>
+#include <conio.h>
+
+void SortowaniePrzezWstawianie(int *tablica, int elementy)
+{
+	int zmiennapomocnicza, indeks;
+	for (int j = 1; j < elementy; j++)
+	{
+		zmiennapomocnicza = tablica[j];
+		indeks = j - 1;
+
+		while (indeks >= 0 && zmiennapomocnicza < tablica[indeks])
+		{
+			tablica[indeks + 1] = tablica[indeks];
+			tablica[indeks] = zmiennapomocnicza;
+			indeks--;
+		}
+
+	}
+}
+void SortowanieprzezWybor(int *tablica, int elementy)
+{
+	int min;
+	int pomoc;
+	for (int i = 0; i < elementy; i++)
+	{
+		min = i;
+		for (int j = i + 1; j <= elementy - 1; j++)
+		{
+			if (tablica[min]>tablica[j])
+			{
+				min = j;
+			}
+		}
+		pomoc = tablica[i];
+		tablica[i] = tablica[min];
+		tablica[min] = pomoc;
+	}
+}
+void SortowanieBabelkowe(int *tablica, int elementy)
+{
+	bool stan = true;
+	int pomoc;
+	while (stan == true)
+	{
+		for (int i = 1; i < elementy; i++)
+		{
+			if (tablica[i - 1]>tablica[i])
+			{
+				pomoc = tablica[i - 1];
+				tablica[i - 1] = tablica[i];
+				tablica[i] = pomoc;
+				stan = true;
+			}
+			else stan = false;
+		}
+	}
+}
+void SortowanieKoktajlowe(int *tablica, int elementy)
+{
+	bool stan = true;
+	int pomoc;
+	while (stan == true)
+	{
+		for (int i = 1; i < elementy; i++)
+		{
+			if (tablica[i - 1]>tablica[i])
+			{
+				pomoc = tablica[i - 1];
+				tablica[i - 1] = tablica[i];
+				tablica[i] = pomoc;
+				stan = true;
+			}
+			else stan = false;
+		}
+		for (int i = elementy - 1; i >0; i--)
+		{
+			if (tablica[i - 1]>tablica[i])
+			{
+				pomoc = tablica[i - 1];
+				tablica[i - 1] = tablica[i];
+				tablica[i] = pomoc;
+				stan = true;
+			}
+			else stan = false;
+		}
+	}
+}
+void SortowanieSzybkie(int *tablica, int elementy)
+{
+
+}
+int main()
+{
+	int tablica[15] = { 8,2,1,3,4 };
+	for (int i = 0; i < 5; i++) printf(" %d ", tablica[i]);
+	printf("\n");
+	//SortowaniePrzezWstawianie(tablica, 5);
+	//SortowanieprzezWybor(tablica, 5);
+	//SortowanieBabelkowe(tablica, 5);
+
+	for (int i = 0; i < 5; i++) printf(" %d ", tablica[i]);
+	_getch();
+	return 0;
+}

@@ -1,0 +1,64 @@
+#include "stdafx.h"
+#include <iostream>
+#include <conio.h>
+
+struct Stack {
+	int capacity;
+	int size;
+	int *data;
+};
+
+Stack *CreateStack(unsigned int Capacity) {
+	if (Capacity > 0) {
+		Stack *s = (Stack*)malloc(sizeof(Stack));
+		s->capacity = Capacity;
+		s->size = 0;
+		s->data = new int[Capacity];
+		return s;
+	}
+	return 0;
+}
+
+Stack *DestroyStack(Stack *s)
+{
+	if (s == 0) return 0;
+	free(s->data);
+	free(s);
+	return 0;
+}
+
+bool IsEmpty(const Stack *s)
+{
+	if (s == 0) return false;
+	if (s->size == 0) return true;
+	return false;
+}
+
+bool Push(Stack *s, int value)
+{
+	if (s->size < s->capacity) {
+		s->data[s->size] = value;
+		s->size++;
+		return true;
+	}
+	return false;
+}
+
+int Pop(Stack *s)
+{
+	if (s->size > 0) {
+		return s->data[--s->size];
+	}
+	return 0;
+}
+
+int main() {
+	Stack *s = CreateStack(10);
+	for (int i = 0; i < 10; ++i) Push(s, (i + 1));
+	while (!IsEmpty(s)) {
+		printf("%d\n", Pop(s));
+	}
+	s = DestroyStack(s);
+	_getch();
+	return 0;
+}

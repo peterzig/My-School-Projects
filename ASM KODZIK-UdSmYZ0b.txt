@@ -1,0 +1,132 @@
+$ include (reg51.inc)
+ 
+LED1            EQU             P3.7
+LED2            EQU             P3.6
+LED3            EQU             P3.5
+LED4            EQU             P3.4
+OFF             EQU             P3.3
+LOAD            EQU             P3.2
+CLOCK           EQU             P3.1
+DANE            EQU             P3.0
+ENTER           EQU             P1.7
+DOWN            EQU             P1.6
+UP              EQU             P1.5
+ESC             EQU             P1.4
+SDA             EQU             P1.2
+SCL             EQU             P1.1
+
+                ACALL           BIT_STARTU
+                MOV	            A,#10010000B;
+                ACALL           WYSLIJ
+                MOV	            A,#00000001B;
+                ACALL           WYSLIJ
+                ACALL           BIT_STARTU;
+                MOV	            A,#10010001B
+                ACALL           WYSLIJ
+TU:
+                ACALL           ODBIERZ
+                ACALL           DZIELENIE
+                ACALL           WYSWIETLANIE
+                SJMP            TU
+BIT_STARTU:
+                SETB            SDA
+                SETB            SCL
+                CLR             SDA
+                CLR             SCL
+                RET
+BIT_STOPU:
+                CLR             SDA
+                CLR             SCL
+                SETB            SCL
+                SETB            SDA
+                RET
+;WYSYLANIE BIT PO BICIE DO I2C
+WYSLIJ: 	
+                MOV             R0,#8 
+SKOK:			
+                RLC             A
+                MOV             SDA,C
+                SETB            SCL
+                CLR             SCL
+                DJNZ            R0,SKOK
+                SETB            SDA
+STOP:	
+                JB              SDA,STOP
+                SETB            SCL
+                CLR             SCL
+                RET
+;ODBIERANIE DANYCH Z I2C
+ODBIERZ: 	
+                MOV             R1,#8
+SKOK2:
+                MOV             C,SDA
+                RLC             A
+                SETB            SCL
+                CLR             SCL
+                DJNZ            R1,SKOK2
+                CLR             SDA
+                SETB            SCL
+                CLR             SCL
+                SETB            SDA
+                RET
+DZIELENIE:
+                MOV             B,#100
+                DIV             AB
+                MOV             R1,A
+                MOV             A,B
+                MOV             B,#10
+                DIV             AB
+                MOV             R2,A
+                MOV             R3,B
+                RET
+                
+WYSWIETLANIE:
+                JNB             DOWN, ABC;jesli jest klikniety to skacz do abc
+                JB              DOWN, BCD;jesli nie jest klikniety to skacz do bcd
+
+ABC:                
+                MOV             A,#10
+                ACALL           WPIS
+                SJMP            CDE
+BCD:
+                MOV             A,R3
+                ACALL           WPIS
+                
+CDE:      
+                MOV             A,R2
+                ACALL           WPIS
+                MOV             A,R1
+                ACALL           WPIS
+                MOV             A,#10
+                ACALL           WPIS
+                CLR             LOAD
+                SETB            LOAD
+                CLR             OFF
+                RET
+
+WPIS:
+                MOV             DPTR,#TABLICA
+                MOVC            A,@A+DPTR
+                MOV             R0,#8
+
+TAM:
+                RRC             A
+                MOV             DANE,C
+                CLR             CLOCK
+                SETB            CLOCK
+                DJNZ            R0,TAM
+                RET
+                
+TABLICA:
+DB              0C0H            ;0
+DB              0F9H            ;1
+DB              0A4H            ;2
+DB              0B0H            ;3
+DB              099H            ;4
+DB              092H            ;5
+DB              082H            ;6
+DB              0F8H            ;7
+DB              080H            ;8
+DB              090H            ;9
+DB              0FFH            ;PUSTKA NA WYSWIETLACZU
+END

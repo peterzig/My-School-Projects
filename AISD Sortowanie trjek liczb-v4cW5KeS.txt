@@ -1,0 +1,161 @@
+// [AISD] Sortowanie trójek.cpp : Defines the entry point for the console application.
+//
+
+//////////////////////sortowanie.txt////////////////////////
+3.0 2.0 5.5
+1.0 5.0 2.0
+8.3 2.1 4.0
+4.5 3.3 6.6
+9.0 1.0 2.1
+7.0 11.0 12.0
+6.0 8.4 2.6
+11.0 4.0 5.0
+10.2 5.0 2.4
+1.0 2.55 3.14
+////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include <conio.h>
+
+FILE *plik;
+
+struct point
+{
+public:
+	float x, y, z;
+};
+
+float findMax(float x, float y, float z)
+{
+	float max = x;
+	if (y>max) max = y;
+	if (z>max) max = z;
+	return max;
+}
+
+void Sortowanie(point tab[], const int n)
+{
+	float x, y, z;
+
+	switch (n)
+	{
+	case 1:
+		printf("\nSortowanie rosnaco wedlug sredniej.\n");
+
+		for (int i = 0; i<10; ++i)
+		{
+			int k = i;
+			for (int j = i + 1; j<10; ++j) if ((tab[j].x + tab[j].y + tab[j].z) / 3 < (tab[k].x + tab[k].y + tab[k].z) / 3) k = j;
+
+			x = tab[k].x;
+			y = tab[k].y;
+			z = tab[k].z;
+			tab[k].x = tab[i].x;
+			tab[k].y = tab[i].y;
+			tab[k].z = tab[i].z;
+			tab[i].x = x;
+			tab[i].y = y;
+			tab[i].z = z;
+		}
+
+		for (int i = 0; i<10; ++i) printf("\n[%2.2f, %2.2f, %2.2f] Srednia: %2.2f", tab[i].x, tab[i].y, tab[i].z, (tab[i].x + tab[i].y + tab[i].z) / 3);
+
+		break;
+	case 2:
+		printf("\nSortowanie malejaco wedlug sredniej.\n");
+
+		for (int i = 0; i<10; ++i)
+		{
+			int k = i;
+			for (int j = i + 1; j<10; ++j) if ((tab[j].x + tab[j].y + tab[j].z) / 3 >(tab[k].x + tab[k].y + tab[k].z) / 3) k = j;
+
+			x = tab[k].x;
+			y = tab[k].y;
+			z = tab[k].z;
+			tab[k].x = tab[i].x;
+			tab[k].y = tab[i].y;
+			tab[k].z = tab[i].z;
+			tab[i].x = x;
+			tab[i].y = y;
+			tab[i].z = z;
+
+		}
+		for (int i = 0; i<10; ++i) printf("\n[%2.2f, %2.2f, %2.2f] Srednia: %2.2f", tab[i].x, tab[i].y, tab[i].z, (tab[i].x + tab[i].y + tab[i].z) / 3);
+
+		break;
+	case 3:
+		printf("\nSortowanie rosnaco wedlug najwiekszej wartosci.\n");
+
+		for (int i = 0; i<10; ++i)
+		{
+			int k = i;
+			for (int j = i + 1; j<10; ++j) if (findMax(tab[j].x, tab[j].y, tab[j].z) < findMax(tab[k].x, tab[k].y, tab[k].z)) k = j;
+
+			x = tab[k].x;
+			y = tab[k].y;
+			z = tab[k].z;
+			tab[k].x = tab[i].x;
+			tab[k].y = tab[i].y;
+			tab[k].z = tab[i].z;
+			tab[i].x = x;
+			tab[i].y = y;
+			tab[i].z = z;
+		}
+
+		for (int i = 0; i<10; ++i) printf("\n[%2.2f, %2.2f, %2.2f] Najwieksza wartosc: %2.2f", tab[i].x, tab[i].y, tab[i].z, findMax(tab[i].x, tab[i].y, tab[i].z));
+
+		break;
+	case 4:
+		printf("\nSortowanie malejaco wedlug najwiekszej wartosci.\n");
+
+		for (int i = 0; i<10; ++i)
+		{
+			int k = i;
+			for (int j = i + 1; j<10; ++j) if (findMax(tab[j].x, tab[j].y, tab[j].z) > findMax(tab[k].x, tab[k].y, tab[k].z)) k = j;
+
+			x = tab[k].x;
+			y = tab[k].y;
+			z = tab[k].z;
+			tab[k].x = tab[i].x;
+			tab[k].y = tab[i].y;
+			tab[k].z = tab[i].z;
+			tab[i].x = x;
+			tab[i].y = y;
+			tab[i].z = z;
+		}
+
+		for (int i = 0; i<10; ++i) printf("\n[%2.2f, %2.2f, %2.2f] Najwieksza wartosc: %2.2f", tab[i].x, tab[i].y, tab[i].z, findMax(tab[i].x, tab[i].y, tab[i].z));
+
+		break;
+	default:
+		printf("Bledna wartosc!");
+		break;
+	}
+}
+
+int main()
+{
+	char *fileName = "sortowanie.txt";
+	if ((plik = fopen(fileName, "r")) == NULL)
+	{
+		printf("Blad otwarcia %s!", fileName);
+		_getch();
+		return 1;
+	};
+	point tabl[30];
+
+	for (int i = 0; i<10; ++i)
+	{
+		fscanf(plik, "%f%f%f", &tabl[i].x, &tabl[i].y, &tabl[i].z);
+	}
+	Sortowanie(tabl, 1);
+	printf("\n");
+	Sortowanie(tabl, 2);
+	printf("\n");
+	Sortowanie(tabl, 3);
+	printf("\n");
+	Sortowanie(tabl, 4);
+
+	_getch();
+	return 0;
+}

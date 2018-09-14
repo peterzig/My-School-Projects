@@ -1,0 +1,182 @@
+#include <Windows.h>
+#include <stdio.h>
+
+enum {CELSJUSZ, KELWIN, FAHRENHEIT};
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	static HWND edit_C, edit_K, edit_F, static_C, static_K, static_F;	// uchwyty do kontrolek
+	switch (msg)
+	{
+	case WM_CREATE:
+	{
+		// taki myk na wydobycie identyfikatora instancji naszego programu z parametru lParam ;)
+		HINSTANCE &hInstance = ((LPCREATESTRUCT)lParam)->hInstance;
+		// pola tekstowe, w których będą wpisywane i aktualizowane aktualne przelizone temperatury w różnych skalach
+		// położenie i wymiary podane są byle jakie, bo i tak są ustawiane na poprawne w obsłudze komunikatu WM_SIZE (zmiana rozmiaru okna)
+		edit_C = CreateWindowEx(0, TEXT("EDIT"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER, 1, 2, 3, 4, hwnd, (HMENU)0, hInstance, NULL);
+		edit_K = CreateWindowEx(0, TEXT("EDIT"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER, 5, 6, 7, 8, hwnd, (HMENU)1, hInstance, NULL);
+		edit_F = CreateWindowEx(0, TEXT("EDIT"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER, 9, 10, 11, 12, hwnd, (HMENU)2, hInstance, NULL);
+
+		// pola statyczne (nieedytowalne), które będą wyświetlać opis pola tekstowego, jakiej skali dotyczy temperatura
+		// położenie i wymiary podane są byle jakie, bo i tak są ustawiane na poprawne w obsłudze komunikatu WM_SIZE (zmiana rozmiaru okna)
+		static_C = CreateWindowEx(0, TEXT("STATIC"), TEXT("Celsjusz"), WS_CHILD | WS_VISIBLE | WS_BORDER, 13, 14, 15, 16, hwnd, (HMENU)4, hInstance, NULL);
+		static_K = CreateWindowEx(0, TEXT("STATIC"), TEXT("Kelwin"), WS_CHILD | WS_VISIBLE | WS_BORDER,	17, 18, 19, 20, hwnd, (HMENU)5, hInstance, NULL);
+		static_F = CreateWindowEx(0, TEXT("STATIC"), TEXT("Farenheit"), WS_CHILD | WS_VISIBLE | WS_BORDER, 21, 22, 23, 24, hwnd, (HMENU)6, hInstance, NULL);
+	}break;
+		
+	case WM_COMMAND:
+	{
+		static char buff[11];
+		static double temp_C = 0;	//
+		static double temp_K = 0;	// zmienne przechowujące temperatury w każdej skali
+		static double temp_F = 0;	//
+
+		switch (LOWORD(wParam))
+		{
+			case CELSJUSZ:
+			{
+				// sprawdzamy czy kliknięta kontrolka dalej ma focusa
+				if (GetFocus() != (HWND)lParam)
+					break;
+				// pobieramy temperaturę wpisaną do pola edycyjnego temperatury w Celsjuszach
+				GetWindowTextA(edit_C, buff, 10);
+
+				temp_C = atof(buff);		// konwertujemy pobrany tekst na liczbę (Celsjusze)
+				temp_K = temp_C + 273.15;	// przeliczamy temperaturę z Celsjuszy na Kelwiny
+				temp_F = 1.8 * temp_C + 32;	// przeliczamy temperaturę z Celsjuszy na Farenheity
+
+				sprintf_s(buff, "%.2lf", temp_K);	// konwertujemy przeliczoną temperaturę w Kelwinach na tekst
+				SetWindowTextA(edit_K, buff);		// wpisujemy przeliczoną temperaturę w Kelwinach do odpowiedniego pola edycyjnego
+				sprintf_s(buff, "%.2lf", temp_F);	// konwertujemy przeliczoną temperaturę w Farenheitach na tekst
+				SetWindowTextA(edit_F, buff);		// wpisujemy przeliczoną temperaturę w Farenheitach do odpowiedniego pola edycyjnego
+
+			}break;
+
+			case KELWIN:
+			{
+				// sprawdzamy czy kliknięta kontrolka dalej ma focusa
+				if (GetFocus() != (HWND)lParam)
+					break;
+				// pobieramy temperaturę wpisaną do pola edycyjnego temperatury w Kelwinach
+				GetWindowTextA(edit_K, buff, 10);
+
+				temp_K = atof(buff);		// konwertujemy pobrany tekst na liczbę (Kelwiny)
+				temp_C = temp_K - 273.15;	// przeliczamy temperaturę z Kelwinów na Celsjusze
+				temp_F = 1.8 * temp_C + 32;	// przeliczamy temperaturę z Celsjuszy na Farenheity
+
+				sprintf_s(buff, "%.2lf", temp_C);	// konwertujemy przeliczoną temperaturę w Celsjuszach na tekst
+				SetWindowTextA(edit_C, buff);		// wpisujemy przeliczoną temperaturę w Celsjuszach do odpowiedniego pola edycyjnego
+				sprintf_s(buff, "%.2lf", temp_F);	// konwertujemy przeliczoną temperaturę w Farenheitach na tekst
+				SetWindowTextA(edit_F, buff);		// wpisujemy przeliczoną temperaturę w Farenheitach do odpowiedniego pola edycyjnego
+	
+			}break;
+		
+			case FAHRENHEIT:
+			{
+				// sprawdzamy czy kliknięta kontrolka dalej ma focusa
+				if (GetFocus() != (HWND)lParam)
+					break;
+				// pobieramy temperaturę wpisaną do pola edycyjnego temperatury w Farenheitach
+				GetWindowTextA(edit_F, buff, 10);
+
+				temp_F = atof(buff);				// konwertujemy pobrany tekst na liczbę (Kelwiny)
+				temp_C = (5.0/9.0) * (temp_F - 32);	// przeliczamy temperaturę z Farenheitów na Celsjusze
+				temp_K = temp_C + 273.15;			// przeliczamy temperaturę z Celsjuszy na Kelwiny
+
+				sprintf_s(buff, "%.2lf", temp_C);	// konwertujemy przeliczoną temperaturę w Celsjuszach na tekst
+				SetWindowTextA(edit_C, buff);		// wpisujemy przeliczoną temperaturę w Celsjuszach do odpowiedniego pola edycyjnego
+				sprintf_s(buff, "%.2lf", temp_K);	// konwertujemy przeliczoną temperaturę w Kelwinach na tekst
+				SetWindowTextA(edit_K, buff);		// wpisujemy przeliczoną temperaturę w Kelwinach do odpowiedniego pola edycyjnego
+			}break;
+		};
+	}
+		break;
+	case WM_SIZE:
+	{
+		// Przy zmianie rozmiaru ustalamy nowe wymiary i położenia elementów
+		RECT windowRect;
+		GetClientRect(hwnd, &windowRect);			// pobieramy aktualne wymiary obszaru klienckiego
+		int xEdit = (windowRect.right - 50) / 2;	// wsp X początku pól edycyjnych
+		int y = 10;									// wsp Y początku wszystkich pól
+		int xStatic = (windowRect.right - 190) / 2;	// wsp X początku pól telstowych statycznych
+		int witdhEdit = 100;						// szerokość pól edycyjnych
+		int height = 20;							// wysokość wszystkich pól
+		int widthStatic = 70;						// szerokość pól statycznych
+		// ustawianie pola statycznego i edycyjnego dotyczących temperatury Celsjusza
+		MoveWindow(static_C, xStatic, y, widthStatic, height, TRUE);
+		MoveWindow(edit_C, xEdit, y, witdhEdit, height, TRUE);
+
+		// ustawianie pola statycznego i edycyjnego dotyczących temperatury Kelwina
+		MoveWindow(static_K, xStatic, y += height + 10, widthStatic, height, TRUE);
+		MoveWindow(edit_K, xEdit, y, witdhEdit, height, TRUE);
+		
+		// ustawianie pola statycznego i edycyjnego dotyczących temperatury Farenheita
+		MoveWindow(static_F, xStatic, y += height + 10, widthStatic, height, TRUE);
+		MoveWindow(edit_F, xEdit, y, witdhEdit, height, TRUE);
+
+	}break;
+
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+		//Ustawianie minimalnego rozmiaru okna:
+	case WM_GETMINMAXINFO:
+		((MINMAXINFO *)lParam)->ptMinTrackSize.x = 260;	// minimalna szerokość
+		((MINMAXINFO *)lParam)->ptMinTrackSize.y = 200;	// minimalna wysokość
+		break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX window;
+	HWND hwnd;
+	MSG msg;
+	TCHAR ClassName[] = TEXT("KlasaOkna");
+	TCHAR WindowTitle[] = TEXT("Przeliczanie temperatur");
+
+	window.cbClsExtra = NULL;
+	window.cbSize = sizeof(WNDCLASSEX);
+	window.cbWndExtra = NULL;
+	window.hbrBackground = (HBRUSH)(COLOR_WINDOW);
+	window.hCursor = LoadCursor(NULL, IDC_ARROW);
+	window.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	window.hIconSm = NULL;
+	window.hInstance = hInstance;
+	window.lpfnWndProc = WndProc;
+	window.lpszClassName = ClassName;
+	window.lpszMenuName = 0;
+	window.style = CS_VREDRAW | CS_HREDRAW;
+
+	if (!RegisterClassEx(&window))
+		return 0;
+
+	hwnd = CreateWindowEx(WS_EX_WINDOWEDGE, ClassName, WindowTitle, WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 200, 300, NULL, NULL, hInstance, NULL);
+
+	if (hwnd == NULL)
+	{
+		UnregisterClass(ClassName, hInstance);
+		return 0;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	UnregisterClass(ClassName, hInstance);
+	return msg.wParam;
+}

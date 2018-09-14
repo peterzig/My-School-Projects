@@ -1,0 +1,86 @@
+// [AISD] Kolejka Priorytetowa.cpp : Defines the entry point for the console application.
+//
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+struct queue
+{
+	int pamiec;
+	struct queue *nastepny;
+};
+struct queue *ogon = NULL;
+struct queue *glowa = NULL;
+void push(int liczba)
+{
+	struct queue *mem = (struct queue*)malloc(sizeof(struct queue));
+	mem->pamiec = liczba;
+	mem->nastepny = NULL;
+	if (ogon == NULL && glowa == NULL)
+	{
+		glowa = ogon = mem;
+		return;
+	}
+	ogon->nastepny = mem;
+	ogon = mem;
+}
+void pop()
+{
+	struct queue *mem = glowa;
+	if (glowa == NULL) return;
+	if (glowa == ogon)
+	{
+		glowa = ogon = NULL;
+	}
+	else
+	{
+		glowa = glowa->nastepny;
+
+	}
+	free(mem);
+}
+int Przod()
+{
+	if (glowa == NULL)
+	{
+		printf("Kolejka jest pusta");
+		return 0;
+	}
+	return (glowa->pamiec);
+}
+void Pokaz()
+{
+	struct queue *wsk = glowa;
+	while (wsk != NULL)
+	{
+		printf("%d", wsk->pamiec);
+
+		wsk = wsk->nastepny;
+	}
+	printf("\n");
+
+}
+
+int main()
+{
+	printf("Kolejka:");
+	push(2);
+	Pokaz();
+	printf("Kolejka:");
+	push(4);
+	Pokaz();
+	printf("Kolejka:");
+	push(3);
+	Pokaz();
+	printf("Kolejka:");
+	push(8);
+	Pokaz();
+	printf("Kolejka:");
+	push(1);
+	Pokaz();
+	printf("Kolejka:");
+	Pokaz();
+	printf("Glowa:");
+	printf("%d", Przod());
+	_getch();
+	return 0;
+}

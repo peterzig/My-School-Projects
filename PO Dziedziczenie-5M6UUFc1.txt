@@ -1,0 +1,254 @@
+/////////////////////////Cyfra.h/////////////////////////////////////////////////////////
+#pragma once
+class Cyfra
+{
+	int cyfra;
+public:
+	Cyfra(int );
+	int const getCyfra() const;
+	void Zmien(int);
+	void const Wyswietl() const;
+
+	~Cyfra();
+};
+//////////////////////////Cyfra.cpp///////////////////////////////////////////////////////
+#include "Cyfra.h"
+#include <iostream>
+
+Cyfra::Cyfra(int c)
+{
+	if (c < 0) 
+		cyfra = 0;
+	else if (c > 9) 
+		cyfra = 9;
+	else
+		cyfra = c;
+}
+
+int const Cyfra::getCyfra() const
+{
+	return cyfra;
+}
+
+void Cyfra::Zmien(int c)
+{
+	if (c < 0) 
+		cyfra = 0;
+	else if (c > 9) 
+		cyfra = 9;
+	else
+		cyfra = c;
+}
+
+void const Cyfra::Wyswietl() const
+{
+	std::cout << cyfra << " ";
+}
+
+Cyfra::~Cyfra()
+{
+}
+////////////////////////CyfraLCD.h////////////////////////////////////////////////////////////////////
+#pragma once
+#include "Cyfra.h"
+class CyfraLCD :public Cyfra
+{
+public:
+	CyfraLCD();
+	CyfraLCD(int cyfra);
+	void Wyswietl() const;
+	~CyfraLCD();
+};
+
+
+
+
+//////////////////////////CyfraLCD.cpp////////////////////////////////////////////////////
+#include "CyfraLCD.h"
+#include <iostream>
+using namespace std;
+
+CyfraLCD::CyfraLCD() : Cyfra(0)
+{	
+}
+
+CyfraLCD::CyfraLCD(int cyfra) : Cyfra(cyfra)
+{	
+}
+
+void CyfraLCD::Wyswietl() const
+{
+	switch(getCyfra())
+	{
+	case 0: std::cout << endl
+		<< "   ##   " << std::endl
+		<< "  #  #  " << endl
+		<< "  #  #  " << endl
+		<< "  #  #  " << endl
+		<< "   ##   ";
+		break;
+	case 1: std::cout << endl
+		<< "    ##   " << std::endl
+		<< "   # #  " << endl
+		<< "  #  #  " << endl
+		<< "     #   " << endl
+		<< "     #   ";
+		break;
+	case 2: std::cout << endl
+		<< "   ##   " << std::endl
+		<< "  #  #  " << endl
+		<< "    #   " << endl
+		<< "   #    " << endl
+		<< "  ####  ";
+		break;
+	case 3: std::cout << endl
+		<< "   ##   " << std::endl
+		<< "  #  #  " << endl
+		<< "   ###  " << endl
+		<< "  #  #  " << endl
+		<< "   ##   ";
+		break;
+	case 4: std::cout << endl
+		<< "  #  #  " << std::endl
+		<< "  #  #  " << endl
+		<< "  ####  " << endl
+		<< "     #  " << endl
+		<< "     #  ";
+		break;
+	case 5: std::cout << endl
+		<< "  ####  " << std::endl
+		<< "  #     " << endl
+		<< "   ###  " << endl
+		<< "  #  #  " << endl
+		<< "   ##   ";
+		break;
+	case 6: std::cout << endl
+		<< "   ##   " << std::endl
+		<< "  #    " << endl
+		<< "  ###   " << endl
+		<< "  #  #  " << endl
+		<< "   ##   ";
+		break;					1
+case 7: std::cout << endl
+		<< "  ##### " << std::endl
+		<< "     #  " << endl
+		<< "   ###  " << endl
+		<< "   #    " << endl
+		<< "  #     ";
+		break;
+	case 8: std::cout << endl
+		<< "   ###  " << std::endl
+		<< "  #   # " << endl
+		<< "   ###  " << endl
+		<< "  #   # " << endl
+		<< "   ###  ";
+		break;
+	case 9: std::cout << endl
+		<< "   ##   " << std::endl
+		<< "  #  #  " << endl
+		<< "  ####  " << endl
+		<< "     #  " << endl
+		<< "   ##   ";
+		break;
+	}
+}
+
+
+CyfraLCD::~CyfraLCD()
+{
+}
+//////////////////////////CyfraRzymska.h//////////////////////////////////////////////////
+#pragma once
+#include "Cyfra.h"
+class CyfraRzymska :public Cyfra
+{
+
+public:
+	CyfraRzymska();
+	CyfraRzymska(int cyfra);
+	void Wyswietl();
+	~CyfraRzymska();
+};
+//////////////////////////CyfraRzymska.cpp////////////////////////////////////////////////
+#include "CyfraRzymska.h"
+#include <iostream>
+
+
+CyfraRzymska::CyfraRzymska() : Cyfra(0)
+{	
+}
+
+CyfraRzymska::CyfraRzymska(int cyfra) : Cyfra(cyfra)
+{	
+}
+
+void CyfraRzymska::Wyswietl()
+{
+	switch(getCyfra())
+	{
+	case 0: std::cout << " ";
+		break;
+	case 1: std::cout << "I ";
+		break;
+	case 2: std::cout << "II ";
+		break;
+	case 3: std::cout << "III";
+		break;
+	case 4: std::cout << "IV ";
+		break;
+	case 5: std::cout << "V ";
+		break;
+	case 6: std::cout << "VI ";
+		break;
+	case 7: std::cout << "VII ";
+		break;
+	case 8: std::cout << "VIII ";
+		break;
+	case 9: std::cout << "IX ";
+		break;
+	}
+}
+
+CyfraRzymska::~CyfraRzymska()
+{
+}
+///////////////////////////[PO]Dziedziczenie.cpp///////////////////////////////////
+
+#include "stdafx.h"
+#include <conio.h>
+#include "Cyfra.h"
+#include "CyfraRzymska.h"
+#include "CyfraLCD.h"
+
+
+int main()
+{
+	Cyfra zero(0);
+	Cyfra osiem(8);
+	Cyfra piec(5);
+	CyfraRzymska jeden(1);
+	CyfraRzymska dziewiec(35);
+	CyfraLCD trzy(3);
+	CyfraLCD zero1(-21);
+	CyfraLCD siedem(7);
+	zero.Wyswietl();
+	osiem.Wyswietl();
+	piec.Wyswietl();
+	jeden.Wyswietl();
+	dziewiec.Wyswietl();
+	trzy.Wyswietl();
+	zero1.Wyswietl();
+	siedem.Wyswietl();
+
+	_getch();
+
+    return 0;
+}
+
+
+
+
+
+
+
+									2

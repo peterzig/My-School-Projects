@@ -1,0 +1,57 @@
+package wykresy;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
+
+public class Wykresy {
+    public static void main(String[] args) throws NumberFormatException, 
+        IOException {
+      
+        BufferedReader reader = new BufferedReader(new
+            InputStreamReader(System.in));
+        Scanner sc = new Scanner(System. in ); 
+        
+        int number;
+        
+        System.out.print("Podaj liczbę słupków wykresu:  ");
+        number = Integer.parseInt(reader.readLine());
+        
+        int[] values = new int[number];
+        
+        if(number>4){
+            System.out.print("Niepoprawna wartość słupków, max to 4.\n");
+            System.out.print("Podaj liczbę słupków wykresu:  ");
+            number = Integer.parseInt(reader.readLine());
+        }
+        
+        for(int i=0; i<number;i++){
+            System.out.print("Wartość słupka nr :"+(i+1)+" \n");
+            values[i] = Integer.parseInt(reader.readLine());
+            
+            if(values[i]>60){
+                System.out.print("\nNieprawidłowa wartość, max to 60\n");
+                System.out.print("\nWartość słupka nr :"+(i+1)+" \n");
+                values[i] = Integer.parseInt(reader.readLine());
+            }
+            if(values[i]<0){
+                values[i] = 0;
+            }
+            
+            for(int j=0; j<3;j++){
+                System.out.print("|");
+                for(int k= 0; k <values[i]; k++){
+                    System.out.print("#");
+                }
+                System.out.print("\n");
+            }
+        }
+        
+        System.out.print("\nCzy chcesz ponownie uruchomić program? (t/n)? ");
+            String var = sc.next();
+            if(var.equalsIgnoreCase("T")){// Pasuje zarówno "T" jak i "t"
+                main(null); // jeżeli input to "T" lub "t" wraca do maina
+            }
+    }
+}

@@ -1,0 +1,95 @@
+// listajednokierunkowa.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <malloc.h>
+
+
+struct Lista
+{
+	Lista *next;
+	float data;
+};
+
+Lista *Dodaj(Lista *L,const float wartosc)
+{
+	if(L == NULL)
+	{
+		L = (Lista*)malloc(sizeof(Lista));
+		L->data = wartosc;
+		L->next = 0;
+	}
+	else
+	{
+		Lista *nl = (Lista*)malloc(sizeof(Lista));
+		nl->data = wartosc;
+		nl->next = 0;
+		while (L->next != 0)L = L->next;
+		L->next = nl;
+		return nl;
+	}
+}
+
+int Licznik(Lista*L)
+{
+	int licznik = 1;
+	while (L->next !=0)
+	{
+		licznik++;
+		L = L->next;
+	}
+	return licznik;
+}
+
+Lista *Nastepny(Lista *L)
+{
+	return L->next;
+}
+
+float Odczytaj(Lista *L)
+{
+	return L->data;
+}
+
+void ZwolnijListe(Lista *L)
+{
+	if (L!=NULL)
+	{
+		while(L->next !=0)
+		{
+			Lista *dL = L;
+			L = L->next;
+			free(dL);
+		}
+		free(L);
+	}
+}
+
+int main()
+{
+	int liczba;
+	Lista *X, *L = Dodaj(0, 11.0f);
+	Dodaj(L, 22.0f);
+	Dodaj(L, 33.0f);
+	Dodaj(L, 44.0f);
+	printf("Powinno byc 4 ,jest %d.\n", Licznik(L));
+	printf("Podaj ilosc iteracji:");
+	scanf("%d", &liczba);
+	
+	for (X = L;Licznik(L)<liczba; Nastepny(X))
+	{
+			printf("%f\n", Odczytaj(X));
+			printf("................");
+			Dodaj(L, 100.44f;
+			printf("Powinno byc 4 ,jest %d.\n", Licznik(L));
+	}
+	
+	for (X = L; X != 0; X=Nastepny(X))
+	{
+		printf("%f\n", Odczytaj(X));
+	}
+	ZwolnijListe(L);
+	_getch();
+    return 0;
+}

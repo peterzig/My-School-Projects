@@ -1,0 +1,25 @@
+#include "stdio.h"
+#include "conio.h"
+
+int main ()
+ {
+    int dolny, gorny, i, j;
+    printf ("podaj dolny zakres : ");
+    scanf ("%d", &dolny);
+    printf ("podaj gorny zakres : ");
+    scanf ("%d", &gorny);
+    if(dolny>gorny)
+    {
+        printf ("dolny nie moze byc wiekszy od gornej");
+        }
+    for (i=dolny;i<gorny+1;i++)
+     {
+        printf ("  %d\n", i);
+    
+    for (j=dolny;j<gorny+1;j++)
+     {
+        printf (" %d  | %d |\n",j, i*j);
+    }
+        }
+    
+}

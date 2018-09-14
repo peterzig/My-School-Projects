@@ -1,0 +1,188 @@
+/////////////////////////Figura.java/////////////////////////////////
+
+
+package figura;
+
+public abstract class Figura {
+    
+    public abstract String KlasaFigury();
+    public abstract double PolePowierzchni();
+    public abstract double Obwod();
+       
+    public static void main(String[] args) {
+        
+            Figura[] figures = new Figura[30];
+            Grupa group = new Grupa(30);
+            Okrag[] circles = new Okrag[10];
+            Prostokat[] rectangles = new Prostokat[10];
+            Trojkat[] triangles = new Trojkat[10];
+            for (int i = 0; i < 10; ++i) {
+                circles[i] = new Okrag(i);
+                figures[i] = circles[i];
+            }
+            for (int i = 10; i < 20; ++i) {
+                rectangles[i-10] = new Prostokat(i, i);
+                figures[i] = rectangles[i-10];
+            }
+            for (int i = 20; i < 30; ++i) {
+                triangles[i-20] = new Trojkat(i, i, i);
+                figures[i] = triangles[i-20];
+            }
+
+            for (int i = 0; i < 30; ++ i) {
+                group.UstawFigure(i, figures[i]);
+            }
+
+            group.Wyswietl();
+      /*Grupa g = new Grupa(20);
+      
+      for (int i = 0; i < 20; ++i) {
+            Okrag o = new Okrag(1.1*i);
+            
+            g.UstawFigure(i,o);
+        }
+      
+      g.KlasaFigury();
+      g.Wyswietl();
+      */
+    }
+    
+}
+
+
+///////////////////////////////////Grupa.java//////////////////////////////////
+
+
+
+package figura;
+
+public class Grupa extends Figura {
+    private Figura[] array;
+    private int numberOfElemens;
+    
+    public Grupa(int n) {
+        numberOfElemens = n;
+        array = new Figura[n];
+    }
+    
+    public void UstawFigure(int i, Figura figure){
+        array[i] = figure;
+    }
+    
+    public void Wyswietl(){
+        System.out.print("----------------------------\n");
+        System.out.print("|Lp.| Figura | Obwód | Pole|\n");
+        System.out.print("----------------------------\n");
+        for (int i = 0; i < numberOfElemens; ++i) {
+        //System.out.print("| "+(i+1)+"|"+array[i].KlasaFigury()+"|"+array[i].Obwod()+"|"+array[i].PolePowierzchni()+" |\n");
+        System.out.printf("| %d | %s |  %.2f  | %.2f |\n",(i+1),array[i].KlasaFigury(),array[i].Obwod(),array[i].PolePowierzchni());
+        }
+    }
+    
+    
+    @Override public String KlasaFigury() {
+        return "GrupaFigur";
+    }
+    
+    @Override public double PolePowierzchni() {
+        double sum = 0;
+        for (int i = 0; i < numberOfElemens; ++i) {
+            sum += array[i].PolePowierzchni();
+        }
+        return sum;
+    }
+     
+    @Override public double Obwod() {
+      double sum = 0;
+        for (int i = 0; i < numberOfElemens; ++i) {
+            sum += array[i].Obwod();
+        }
+        return sum;
+    }
+    
+}
+
+//////////////////////////////////////////Okrag.java/////////////////////////////////
+
+
+package figura;
+
+
+public class Okrag extends Figura {
+    double r;
+    
+    Okrag(double r){
+        this.r = r;
+    }
+    
+    @Override public String KlasaFigury(){
+        return "Okrąg";
+    }
+    
+     @Override public double PolePowierzchni(){
+        return Math.PI*r*r;
+    }
+     
+      @Override public double Obwod(){
+        return 2*(Math.PI*r);
+    }
+      
+}
+
+///////////////////////////////////////////Prostokat.java////////////////////////////////////
+
+
+package figura;
+
+public class Prostokat extends Figura{
+    double a,b;
+    
+    public Prostokat(double a, double b){
+        this.a = a;
+        this.b = b;
+    }
+    
+    @Override public String KlasaFigury(){
+        return "Prostokąt";
+    }
+    
+     @Override public double PolePowierzchni(){
+        return a*b;
+    }
+     
+      @Override public double Obwod(){
+        return (2*a)+(2*b);
+    }    
+}
+
+
+
+////////////////////////////////////////////////Trojkat.java////////////////////////////////////////////////
+
+
+
+package figura;
+
+public class Trojkat extends Figura {
+    double a,b,c;
+    
+    public Trojkat(double a, double b, double c){
+       this.a = a;
+       this.b = b;
+       this.c = c;
+    }
+    
+    @Override public String KlasaFigury(){
+        return "Trójkąt";
+    }
+    
+     @Override public double PolePowierzchni(){
+        double pole,p;
+        p = 0.5*(a+b+c);
+        return pole = Math.sqrt(p*(p-a)*(p-b)*(p-c));
+    }
+     
+      @Override public double Obwod(){
+        return a+b+c;
+    }    
+}

@@ -1,0 +1,156 @@
+// ?wiat?a.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <Windows.h>
+int menu();
+int stan1();
+
+
+class Skrzyzowanie
+{
+public : 
+	// Stany sygnalizator zielone = 1 , ?ó?te = 2 , czerwone = 3 , czerwone i ?ó?te = 4.
+	int sygnalizator_1;//1 para
+	int sygnalizator_2;//2 para
+	int sygnalizator_3;//1 para
+	int sygnalizator_4;//2 para
+public :
+	Skrzyzowanie():sygnalizator_1(2),sygnalizator_2(2),sygnalizator_3(2),sygnalizator_4(2){};
+
+	int Wyswietl(int numer)const
+	{
+		if(numer==1) return sygnalizator_1;
+		else if(numer==2) return sygnalizator_2;
+		else if(numer==3) return sygnalizator_3;
+		else if(numer==4) return sygnalizator_4;
+		
+	}
+	int ustaw(int numer,int stan)
+	{
+		if(stan >=1 && stan <=4)
+		{
+		if(numer >=1 && numer <=4)
+		{
+		if(numer==1)
+		{
+			sygnalizator_1=stan;
+			sygnalizator_3=stan;
+		}	
+		else if(numer==2)
+		{
+			sygnalizator_2=stan;
+			sygnalizator_4=stan;
+		}
+		else if(numer==3)
+		{
+			sygnalizator_1=stan;
+			sygnalizator_3=stan;
+		}
+		else if(numer==4)
+		{
+			sygnalizator_2=stan;
+			sygnalizator_4=stan;
+		}
+		}else return 0;
+		}else return 0;
+	}
+	int synchronizacja(int numer,int stan)
+	{
+		int stanx =0;
+		if(stan >=1 && stan <=4)
+		{
+			if(stan == 1) stanx = 3;
+			if(stan == 2) stanx = 2;
+			if(stan == 3) stanx = 1;
+			if(stan == 4) stanx = 3;
+		if(numer >=1 && numer <=4)
+		{
+		if(numer==1)
+		{
+			sygnalizator_2=stanx;
+			sygnalizator_4=stanx;
+		}	
+		else if(numer==2)
+		{
+			sygnalizator_1=stanx;
+			sygnalizator_3=stanx;
+		}
+		else if(numer==3)
+		{
+			sygnalizator_2=stanx;
+			sygnalizator_4=stanx;
+		}
+		else if(numer==4)
+		{
+			sygnalizator_1=stanx;
+			sygnalizator_3=stanx;
+		}
+		}else return 0;
+		}else return 0;
+	}
+};
+int _tmain(int argc, _TCHAR* argv[])
+{
+	Skrzyzowanie a;
+	int wyjscie = 0;
+	int wybor = 0;
+	int komunikat = 0;
+	int komunikat1 = 0;
+	do
+	{
+		for(int i=1 ; i<=4; i++)
+		{
+			if(a.Wyswietl(i)==1)
+				printf("Sygnalizator %d :Zielone\n",i);
+			if(a.Wyswietl(i)==2)
+				printf("Sygnalizator %d :Zolte\n",i);
+			if(a.Wyswietl(i)==3)
+				printf("Sygnalizator %d :Czerwone\n",i);
+			if(a.Wyswietl(i)==4)
+				printf("Sygnalizator %d :Czerwone i Zolte\n",i);
+		}
+		wybor = menu();
+		switch(wybor)
+		{
+		case 1:
+			printf("\nWybierz numer sygnalizatora(1-4) : ");
+			int syg;
+			scanf("%d",&syg);
+			switch(syg)
+			{
+		case 1:
+			{
+				int wybor1 = stan1();
+				komunikat = a.ustaw(syg,wybor1);
+				komunikat1 = a.synchronizacja(syg,wybor1);
+				if(komunikat == 0|| komunikat1 ==0) printf("Podales zle dane !!");
+				break;
+			}
+		case 2:
+			{
+				int wybor1 = stan1();
+				komunikat = a.ustaw(syg,wybor1);
+				komunikat1 = a.synchronizacja(syg,wybor1);
+				if(komunikat == 0|| komunikat1 ==0) printf("Podales zle dane !!");
+				break;
+			}
+		case 3:
+			{
+				int wybor1 = stan1();
+				komunikat = a.ustaw(syg,wybor1);
+				komunikat1 = a.synchronizacja(syg,wybor1);
+				if(komunikat == 0|| komunikat1 ==0) printf("Podales zle dane !!");
+				break;
+			}
+		case 4:
+			{
+				int wybor1 = stan1();
+				komunikat = a.ustaw(syg,wybor1);
+				komunikat1 = a.synchronizacja(syg,wybor1);
+				if(komunikat == 0|| komunikat1 ==0) printf("Podales zle dane !!");
+				break;
+			}
+		default:
+			{

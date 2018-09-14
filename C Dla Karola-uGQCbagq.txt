@@ -1,0 +1,61 @@
+#include <math.h>
+#include <iostream>
+#include <conio.h>
+
+using namespace std;
+
+void primes() {
+	int n;
+	cout << "Podaj maksymalny zakres obliczania liczb pierwszych: \n";
+	cin >> n;
+	cout << "Twoje liczby pierwsze to: \n";
+	for (int i = 2; i<n; i++) //pętla wykonująca się od 2 bo liczby pierwsze są większe od 1
+		for (int j = 2; j*j <= i; j++) // pętla wykonująca się do momentu gdy j^2 jest mniejsze lub równe wcześniejszemu elementowi i
+		{
+			if (i % j == 0) // jeżeli reszta z dzielenia i przez j równa 0 to program kończy działanie
+				break;
+			else if (j + 1 > sqrt(i)) { //jeżeli j+1 większe od pierwiastka z i
+				cout << i << " ";
+			}
+		}
+}
+
+void fibonacci() {
+	int n;
+	cout << "\nPodaj ile chcesz wypisac wyrazow ciagu fibonacciego: ";
+	cin >> n;
+
+	double a = 0, b = 1;
+
+	for (int i = 0; i<n; i++) //pętla wykonująca się n liczbę razy zadaną przez użytkownika
+	{
+		cout << b << " ";
+		b += a;  // b sumuje się do a
+		a = b - a;
+	}
+}
+
+
+
+int main()
+{
+	int k;
+	cout << "\nProgram do obliczen matematycznych.";
+	cout << "\n\t1.Generowanie liczb pierwszych\n";
+	cout << "\t2.Generowanie ciagu Fibonacciego\nWybierz nr: ";
+	cin >> k;
+	switch (k)
+	{
+		case 1:
+			primes(); //wywołanie funkcji obliczającej liczby pierwsze
+		break;
+		case 2:
+			fibonacci(); //wywołanie funkcji obliczającej ciąg fibonacciego
+		break;
+	default:
+		break;
+	}
+	cout << "\nNacisnij dowolny przycisk, aby zamknac program. \n";
+	_getch();
+	return 0;
+}

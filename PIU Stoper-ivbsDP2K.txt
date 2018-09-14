@@ -1,0 +1,184 @@
+#define SCREEN_WIDTH 700
+#define SCREEN_HEIGHT 600
+#define TIMER_ID 1
+#define BUFF_SIZE 128
+#define ID_BUTTON1 1
+#define ID_BUTTON2 2
+#define ID_BUTTON3 3
+#define ID_TEXTFIELD1 4
+
+#include <windows.h>
+#include <tchar.h>
+
+TCHAR className[] = TEXT("Class");
+TCHAR appName[] = TEXT("Stoper");
+
+HWND hwnd;
+MSG msg;
+
+void SetTimeInWindow(HWND& hwnd, UINT miliSeconds) {
+	UINT value = miliSeconds;
+	UINT minute = 0, second = 0, miliSecond = 0;
+
+	if (value / 60000 >= 1) {
+		minute = value / 60000;
+		value -= (60000 * minute);
+	}
+
+	if (value / 1000 >= 1) {
+		second = value / 1000;
+		value -= (1000 * second);
+	}
+
+	miliSecond = value;
+
+	TCHAR timeBuf[BUFF_SIZE];
+
+
+
+	_swprintf(timeBuf, TEXT("%i:%i:%i"), minute, second, miliSecond);
+
+	SetWindowText(hwnd, timeBuf);
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static HWND valueTextField, button1, button2, button3;
+	static RECT clientRect;
+	static SYSTEMTIME zeroTime, currentTime;
+	static UINT miliSeconds = 0;
+	static UINT test = 0;
+	static bool isStart = false;
+
+	switch (msg){
+		case WM_CREATE: {
+			SetTimer(hwnd, TIMER_ID, 1, NULL);
+			GetClientRect(hwnd, &clientRect);
+
+			HINSTANCE &hInstance = ((LPCREATESTRUCT)lParam)->hInstance;
+
+			valueTextField = CreateWindowEx(0, TEXT("STATIC"), TEXT("00:00:00"), WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 0, 0, hwnd, (HMENU) ID_TEXTFIELD1, hInstance, 0);
+			if (valueTextField == NULL) {
+				MessageBox(NULL, TEXT("Some problem with CreateWindowEx by valueTextField"), className, MB_OK);
+				return 1;
+			}
+
+			button1 = CreateWindowEx(0, TEXT("BUTTON"), TEXT("START"), WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 0, 0, hwnd, (HMENU)ID_BUTTON1, hInstance, 0);
+			if (button1 == NULL) {
+				MessageBox(NULL, TEXT("Some problem with CreateWindowEx by button"), className, MB_OK);
+				return 1;
+			}
+
+			button2 = CreateWindowEx(0, TEXT("BUTTON"), TEXT("STOP"), WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 0, 0, hwnd, (HMENU)ID_BUTTON2, hInstance, 0);
+			if (button2 == NULL) {
+				MessageBox(NULL, TEXT("Some problem with CreateWindowEx by button1"), className, MB_OK);
+				return 1;
+			}
+
+			button3 = CreateWindowEx(0, TEXT("BUTTON"), TEXT("RESET"), WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 0, 0, hwnd, (HMENU)ID_BUTTON3, hInstance, 0);
+			if (button3 == NULL) {
+				MessageBox(NULL, TEXT("Some problem with CreateWindowEx by button2"), className, MB_OK);
+				return 1;
+			}
+			}break;
+
+		case WM_TIMER: {
+			if (isStart) {
+				GetLocalTime(&currentTime);
+
+				miliSeconds += (((currentTime.wMinute - zeroTime.wMinute) * 60000) + ((currentTime.wSecond - zeroTime.wSecond) * 1000) + (currentTime.wMilliseconds - zeroTime.wMilliseconds) - test);
+				test = (((currentTime.wMinute - zeroTime.wMinute) * 60000) + ((currentTime.wSecond - zeroTime.wSecond) * 1000) + (currentTime.wMilliseconds - zeroTime.wMilliseconds));
+
+				SetTimeInWindow(valueTextField, miliSeconds);
+			}
+			}break;
+
+		case WM_SIZE: {
+			GetClientRect(hwnd, &clientRect);
+			
+			MoveWindow(valueTextField, clientRect.right / 3, clientRect.bottom / 2.5, clientRect.right / 7, clientRect.bottom / 20, 1);
+			MoveWindow(button1, clientRect.right / 3, clientRect.bottom / 2, clientRect.right / 7, clientRect.bottom / 20, 1);
+			MoveWindow(button2, clientRect.right / 2, clientRect.bottom / 2, clientRect.right / 7, clientRect.bottom / 20, 1);
+			MoveWindow(button3, clientRect.right / 2, clientRect.bottom / 2.5, clientRect.right / 7, clientRect.bottom / 20, 1);
+			}break;
+
+		case WM_GETMINMAXINFO:
+			((MINMAXINFO*)lParam)->ptMinTrackSize.x = 600;
+			((MINMAXINFO*)lParam)->ptMinTrackSize.y = 500;
+			break;
+
+		case WM_COMMAND:
+			switch (wParam) {
+				case ID_BUTTON1:
+					test = 0;
+					isStart = true;
+					GetLocalTime(&zeroTime);
+					break;
+
+				case ID_BUTTON2:
+					isStart = false;
+					break;
+
+				case ID_BUTTON3:
+					miliSeconds = test = 0;
+					isStart = false;
+					SetTimeInWindow(valueTextField, miliSeconds);
+					break;
+			}
+			break;
+			
+		case WM_CLOSE:	
+			DestroyWindow(hwnd);	
+			break;
+
+		case WM_DESTROY: {
+			KillTimer(hwnd, TIMER_ID);
+			PostQuitMessage(0);
+			}break;
+
+		default:	
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = className;
+	wc.lpszMenuName = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	if (RegisterClassEx(&wc) == 0) {
+		MessageBox(NULL, TEXT("Some problem with RegisterClassEx"), className, MB_OK);
+		return 1;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE, className, appName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, hInstance, 0);
+	if (hwnd == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by hwnd"), className, MB_OK);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(className, hInstance);
+
+	return msg.wParam;
+}

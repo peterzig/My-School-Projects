@@ -1,0 +1,68 @@
+void wstawianie_sort(int tab[], const int rozmiar)
+{
+    int i, x, j;
+ 
+    for (i = 1; i < rozmiar; i++)
+    {
+        x = tab[i];
+        j = i - 1;
+ 
+        while (x < tab[j] && j >= 0)
+        {
+            tab[j + 1] = tab[j];
+            j = j - 1;
+        }
+ 
+        tab[j + 1] = x;
+    }
+ 
+}
+ 
+void wybieranie_sort(int tab[], const int rozmiar)
+{
+    int i, j, x, k;
+    for (i = 0; i < rozmiar - 1; i++)
+    {
+        k = i;
+        x = tab[i];
+        for (j = i + 1; j < rozmiar; j++)
+        {
+            if (tab[j] < x)
+            {
+                k = j;
+                x = tab[j];
+            }
+        }
+ 
+        tab[k] = tab[i];
+        tab[i] = x;
+ 
+    }
+}
+ 
+void shell_sort(int tab[], const int rozmiar)
+{
+    int h = 1;
+    int x = 0;
+    int j = 0;
+    while (h < rozmiar / 9) h = 3 * h + 1;
+    while (h > 0)
+    {
+        for (int i = h; i < rozmiar; i++)
+        {
+            x = tab[i];
+            j = i;
+ 
+            while (j >= h && x < tab[j - h])
+            {
+                tab[j] = tab[j - h];
+                j = j - h;
+            }
+ 
+            tab[j] = x;
+        }
+ 
+        h = h / 3;
+    }
+ 
+}

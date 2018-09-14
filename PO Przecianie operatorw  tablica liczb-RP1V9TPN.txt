@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <conio.h>
+
+class DynArray
+{
+public:
+	DynArray();
+	DynArray::DynArray(DynArray &dyn);
+	DynArray(const int N, const int M);
+	const int Size()const;
+	void Display();
+	void Koniec();
+	DynArray operator! ()
+	{
+		for(int i = 0; i < N; i++)
+		{
+			tab[i] *= -1;
+		}
+		return *this;
+	}
+	DynArray operator+= (int x)
+	{
+
+		int *tab2 = new int[N];
+		for(int i = 0;i<N;i++)
+		{
+			tab2[i] = tab[i];
+		}
+		N++;
+		tab = new int[N];
+		for(int i = 0;i<N;i++)
+		{
+			tab[i] = tab2[i];
+		}
+		tab[N-1] = x;
+
+		delete [] tab2;
+
+		return *this;
+	}
+private:
+	int *tab;
+	int N;
+};
+DynArray::DynArray()
+{
+	tab = NULL;
+	N = 0;
+}
+DynArray::DynArray(DynArray &dyn)
+{
+	this->tab = dyn.tab;
+	this->N = dyn.N;
+}
+DynArray::DynArray(const int N, const int M)
+{
+	this->N = N;
+
+	tab  = new int [ N ];
+	
+		for( int i = 0; i < N; i++ )
+			tab[i] = M;
+}
+const int DynArray::Size()const
+{
+	return N;
+}
+void DynArray::Display()
+{
+	printf("[");
+	for(int i = 0; i < N; i++)
+	{
+		printf("%d", tab[i]);
+		if(i!=N-1) printf(", ");
+	}
+	printf("]");
+}
+void DynArray::Koniec()
+{
+	delete [] tab;
+}
+
+int main()
+{
+	DynArray arr1;
+	DynArray arr2(5, 2);
+	
+	printf("arr1 {%2d}  = ", arr1.Size());
+	arr1.Display();	
+ 
+	printf("\narr2 {%2d}  = ", arr2.Size());
+	arr2.Display();
+ 
+	DynArray arr3 = arr2;
+	arr3 += -10;
+	arr3 += -20;
+	arr3 += -30;
+	printf("\narr3 {%2d}  = ", arr3.Size());
+	arr3.Display();
+ 
+	!arr3;
+	printf("\n!arr3 {%2d} = ", arr3.Size());
+	arr3.Display();
+ 
+	printf("\narr2 {%2d}  = ", arr2.Size());
+	arr2.Display();
+ 
+	arr1.Koniec();
+	arr2.Koniec();
+	arr3.Koniec();
+	printf("\n\nKoniec.");
+
+	_getch();
+	return 0;
+}

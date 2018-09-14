@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <conio.h>
+#include <string.h>
+#include <malloc.h>
+ 
+class DynString
+{
+        public:
+                DynString(const char *string);
+                DynString(const DynString& kopia);
+                const char* CStr() const;
+                unsigned int Size() const;
+ 
+                void operator += (const char *string);
+                void operator ! ();
+ 
+        private:
+                char *string;
+};
+ 
+DynString::DynString(const char *string)
+{
+        this->string = (char*)malloc(strlen(string)*sizeof(char));
+        if(this->string != NULL)
+        {
+                strcpy(this->string, string);
+        }
+}
+ 
+DynString::DynString(const DynString& kopia)
+{
+        this->string = (char*)malloc(strlen(kopia.string)*sizeof(char));
+        if(this->string != NULL)
+        {
+                strcpy(this->string, kopia.string);
+        }
+}
+ 
+const char* DynString::CStr() const
+{
+        return string;
+}
+ 
+unsigned int DynString::Size() const
+{
+        return strlen(string);
+}
+ 
+void DynString::operator += (const char *string)
+{
+        unsigned int currentSize = (strlen(this->string));
+        unsigned int newSize = currentSize + strlen(string);
+        this->string = (char*)realloc(this->string, newSize*sizeof(char));
+ 
+        if(this->string != NULL)
+        {
+                this->string[currentSize] = '\0';
+                this->string = strcat(this->string, string);
+        }
+}
+ 
+void DynString::operator ! ()
+{
+        unsigned int size = strlen(string);
+        for(unsigned int i = 0; i < size; i++)
+        {
+                if(string[i] >= 97 && string[i] <= 122)
+                {
+                        string[i] -= 32;
+                }
+                else if(string[i] >= 65 && string[i] <= 90)
+                {
+                        string[i] += 32;
+                }
+        }
+}
+ 
+int main()
+{
+        DynString napis("Napis testowy.");
+        printf("Napis %s\n", napis.CStr());
+        printf("Znakow: %i\n", napis.Size());
+ 
+        DynString kopia = napis;
+        printf("Kopia %s\n", kopia.CStr());
+        printf("Znakow: %i\n", kopia.Size());
+ 
+        kopia += " - pierwszy fragment -";
+        kopia += " drugi fragment.";
+ 
+        printf("Napis %s\n", napis.CStr());
+        printf("Znakow: %i\n", napis.Size());
+        printf("Kopia %s\n", kopia.CStr());
+        printf("Znakow: %i\n", kopia.Size());
+ 
+        !napis;
+        printf("Napis %s\n", napis.CStr());
+        printf("\nKoniec.");
+        _getch();
+        return 0;
+}

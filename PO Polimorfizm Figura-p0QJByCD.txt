@@ -1,0 +1,180 @@
+// [PO] Polimorfizm - Figura.cpp : Defines the entry point for the console application.
+//
+#include "stdafx.h"
+#include <iostream>
+#include <string>
+#include <stdio.h>
+#include <conio.h>
+#include <fstream>
+#include <cstdlib>
+
+using namespace std;
+
+class Figura
+{
+public:
+	virtual string Nazwa() = 0;
+	virtual int Obwod() = 0;
+	virtual int PolePowierzchni() = 0;
+};
+
+class Prostokat :public Figura
+{
+private:
+	int a;
+	int b;
+public:
+	Prostokat(string opis, int a, int b)
+	{
+		this->a = a;
+		this->b = b;
+	}
+	string Nazwa()
+	{
+		return "Prostokat";
+	}
+	int Obwod()
+	{
+		return a + a + b + b;
+	}
+	int PolePowierzchni()
+	{
+		return a*b;
+	}
+};
+
+class Kwadrat :public Figura
+{
+private:
+	int a;
+public:
+	Kwadrat(string opis, int a)
+	{
+		this->a = a;
+	}
+	string Nazwa()
+	{
+		return "Kwadrat";
+	}
+	int Obwod()
+	{
+		return a + a + a + a;
+	}
+	int PolePowierzchni()
+	{
+		return a*a;
+	}
+};
+
+class Elipsa :public Figura
+{
+private:
+	int r1;
+	int r2;
+public:
+	Elipsa(string opis, int r1, int r2)
+	{
+		this->r1 = r1;
+		this->r2 = r2;
+	}
+	string Nazwa()
+	{
+		return "Elipsa";
+	}
+	int Obwod()
+	{
+		return r1 + r2 + r1 + r2;
+	}
+	int PolePowierzchni()
+	{
+		return 3.14*r1*r2;
+	}
+};
+
+class Kolo :public Figura
+{
+private:
+	int r;
+public:
+	Kolo(string opis, int r)
+	{
+		this->r = r;
+	}
+	string Nazwa()
+	{
+		return "Kolo";
+	}
+	int Obwod()
+	{
+		return 2 * 3.14*r;
+	}
+	int PolePowierzchni()
+	{
+		return 3.14*r*r;
+	}
+};
+
+int main()
+{
+	string l;
+	int licznik = 0;
+	fstream plik;
+	plik.open("plik.txt", ios::in);
+	if (plik.good() == false) cout << "Blad otwarcia pliku";
+	while (getline(plik, l))
+	{
+		licznik++;
+	}
+
+	plik.close();
+
+	Figura *tablica[20];
+	string linia;
+	plik.open("plik.txt", ios::in);
+	if (plik.good() == false) cout << "Blad otwarcia pliku";
+
+
+	for (int i = 0; i < licznik + 5; i++)
+	{
+		int pom1;
+		int pom2;
+		plik >> linia;
+		do {
+			if (linia == "Prostokat")
+			{
+				plik >> pom1;
+				plik >> pom2;
+				tablica[i] = new Prostokat(linia, pom1, pom2);
+				cout << tablica[i]->Nazwa() << endl << tablica[i]->Obwod() << endl << tablica[i]->PolePowierzchni() << endl;
+			}
+			else if (linia == "Kwadrat")
+			{
+				plik >> pom1;
+				tablica[i] = new Kwadrat(linia, pom1);
+				cout << tablica[i]->Nazwa() << endl << tablica[i]->Obwod() << endl << tablica[i]->PolePowierzchni() << endl;
+			}
+
+			else if (linia == "Kolo")
+			{
+				plik >> pom1;
+				tablica[i] = new Kolo(linia, pom1);
+				cout << tablica[i]->Nazwa() << endl << tablica[i]->Obwod() << endl << tablica[i]->PolePowierzchni() << endl;
+
+			}
+			else if (linia == "Elipsa")
+			{
+				plik >> pom1;
+				plik >> pom2;
+				tablica[i] = new Elipsa(linia, pom1, pom2);
+				cout << tablica[i]->Nazwa() << endl << tablica[i]->Obwod() << endl << tablica[i]->PolePowierzchni() << endl;
+
+			}
+			i++;
+		} while (plik.eof());
+	}                  
+	
+	plik.close();
+	
+	_getch();
+	return 0;
+}

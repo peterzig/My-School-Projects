@@ -1,0 +1,203 @@
+// [PO] Polimorfizm - Warrior.cpp : Defines the entry point for the console application.
+/////////////warrior.txt///////////////////
+Warrior
+Batman 10.2
+Enemy
+Joker 5.1 3
+Warrior
+Superman 55.3
+Enemy
+Ultra-Humanite 17.2 10
+Warrior
+Daredevil 33.7
+Enemy
+Wilson-Fisk 3.1 10
+Warrior
+Harry-Osborn 23.1 4
+Warrior
+Iron-Man 99.9 12
+Enemy
+Kingpin 45.2 1
+Enemy
+Green-Gobin 100.2 2
+///////////////////////////////////////////
+
+//#define _CRT_SECURE_NO_WARNINGS
+
+#include "stdafx.h"
+#include <iostream>
+#include <stdlib.h>
+#include <string>
+#include <conio.h>
+
+using namespace std;
+
+FILE plik;
+
+class Character
+{
+private:
+	char Name[128];
+	char Type[128];
+public:
+	Character(const char* imie, const char* typ);
+	char* GetName() const;
+	char* GetType() const;
+	static Character** load(char* path, int &);
+	virtual void Draw() = 0;
+};
+
+Character::Character(const char* imie, const char* typ)
+{
+	strcpy(Name, imie);
+	strcpy(Type, typ);
+}
+
+void Character::Draw()
+{
+	cout << "Type: " << Type << " Name: " << Name;
+}
+char* Character::GetName() const
+{
+	char* name = (char*)malloc(sizeof(char) * strlen(Name) + 1);
+	strcpy(name, Name);
+	return name;
+}
+
+char* Character::GetType() const
+{
+	char* type = (char*)malloc(sizeof(char) * strlen(Type) + 1);
+	strcpy(type, Type);
+	return type;
+}
+
+class Warrior : public Character
+{
+private:
+	double _ArmorLvl;
+public:
+	Warrior(const char* Name, double ArmorLevel) : Character(Name, "Warrior"), _ArmorLvl(ArmorLevel) {};
+	void SetArmorLevel(double a)
+	{
+		_ArmorLvl = a;
+	};
+	double GetArmorLevel() const
+	{
+		return _ArmorLvl;
+	};
+	virtual void Draw()
+	{
+		Character::Draw();
+		cout << " LevelArmor: " << _ArmorLvl << endl;
+	};
+};
+
+class Enemy : public Character
+{
+private:
+	double _Strength;
+	int _Enemies;
+public:
+	Enemy(const char* Name, double Strength, int Enemies) : Character(Name, "Enemy"), _Strength(Strength), _Enemies(Enemies) {};
+	void SetStrenght(double s)
+	{
+		_Strength = s;
+	};
+	double GetStrenght() const
+	{
+		return _Strength;
+	};
+	int GetConcurrentWarriors() const
+	{
+		return _Enemies;
+	};
+	virtual void Draw()
+	{
+		Character::Draw();
+		cout << " Strength: " << _Strength << " ConcurrentWarriors: " << _Enemies << endl;
+	};
+};
+
+Character** Character::load(char* path, int &k)
+{
+	int l = 0;
+	FILE* file;
+	file = fopen("warrior.txt", "r");
+
+	Character** lista = (Character**)malloc(sizeof(Character*));
+
+	while (!feof(file))
+	{
+		char type[128];
+		char name[128];
+		float str;
+		int enemies;
+
+		fgets(type, sizeof(type), file);
+
+		strtok(type, "\n");
+
+		if (!strcmp(type, "Warrior"))
+		{
+			fscanf(file, "%s %f", &name, &str);
+			l++;
+			lista = (Character**)realloc(lista, sizeof(Character*) * l);
+			lista[l - 1] = new Warrior(name, str);
+		}
+		else if (!strcmp(type, "Enemy"))
+		{
+			fscanf(file, "%s %f %d", &name, &str, &enemies);
+			l++;
+			lista = (Character**)realloc(lista, sizeof(Character*) * l);
+			lista[l - 1] = new Enemy(name, str, enemies);
+		}
+	}
+
+	fclose(file);
+
+	k = l;
+
+	return lista;
+}
+
+int main()
+{
+	const int charactersCount = 6;
+	Character* characters[charactersCount] = {};
+
+	characters[0] = new Warrior("Batman", 10.2);
+	characters[1] = new Enemy("Joker", 5.1, 3);
+	characters[2] = new Warrior("Superman", 55.3);
+	characters[3] = new Enemy("Ultra-Humanite", 17.2, 10);
+	characters[4] = new Warrior("Daredevil", 33.7);
+	characters[5] = new Enemy("Wilson-Fisk", 3.1, 10);
+
+
+	for (int i = 0; i < charactersCount; ++i)
+	{
+		characters[i]->Draw();
+	};
+
+
+	cout << characters[5]->GetName() << endl;
+
+	for (int i = 0; i < charactersCount; ++i)
+	{
+		if (characters[i])
+			delete characters[i];
+	};
+
+	int l;
+
+	Character** lista = Character::load("warrior.txt", l);
+
+	cout << "\nPo wczytaniu listy\n" << endl;
+
+	for (int i = 0; i < l; i++)
+	{
+		lista[i]->Draw();
+	}
+
+	_getch();
+	return 0;
+}

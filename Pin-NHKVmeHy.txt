@@ -1,0 +1,30 @@
+// ConsoleApplication5.cpp : Defines the entry point for the console application.
+//
+#include "stdafx.h"
+#include <conio.h>
+#include <iostream>
+
+using namespace std;
+
+
+
+int main()
+{
+	string pin;
+	printf("Witaj w naszym banku!\n");
+	printf("Podaj numer PIN: ");
+	scanf("%s", &pin);
+
+	if (pin=="1729")
+	{
+		printf("Poprawny PIN\n");
+	}
+	else
+	{ 
+		printf("Niepoprawny PIN\n");
+	}
+
+	_getch();
+
+    return 0;
+}

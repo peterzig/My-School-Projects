@@ -1,0 +1,140 @@
+//////resource.rc////////
+// Dialog
+//
+#include <windows.h>
+#include "resource.h"
+
+IDD_PASEK DIALOGEX 0, 0, 98, 102
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Mój pasek narzędzi"
+FONT 8, "MS Sans Serif"
+{
+	PUSHBUTTON "&Pierwszy przycisk", IDC_PRZYC1, 7, 7, 84, 14
+		PUSHBUTTON "&Drugi przycisk", IDC_PRZYC2, 7, 31, 84, 14
+		PUSHBUTTON "&Trzeci przycisk", IDC_PRZYC3, 7, 55, 84, 14
+}
+
+///////source.cpp/////////
+
+#include <Windows.h>
+#include "stdio.h"
+#include "resource.h"
+
+TCHAR ClassName[] = TEXT("Nazwa Klasy");
+HINSTANCE *hInst;
+MSG Komunikat;
+HWND okno;
+
+BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	hInst = &hInstance;
+
+	WNDCLASSEX window;
+	window.cbClsExtra = NULL;
+	window.cbSize = sizeof(WNDCLASSEX);
+	window.cbWndExtra = NULL;
+	window.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	window.hCursor = LoadCursor(*hInst, IDC_ARROW);
+	window.hIcon = LoadIcon(*hInst, IDI_APPLICATION);
+	window.hIconSm = NULL;
+	window.hInstance = *hInst;
+	window.lpfnWndProc = WndProc;
+	window.lpszClassName = ClassName;
+	window.lpszMenuName = 0;
+	window.style = NULL;
+
+	if (!RegisterClassEx(&window)) {
+		MessageBox(NULL, TEXT("Zarejestrowanie klasy nieudane! =("), TEXT("WARNING"), MB_OK | MB_ICONWARNING);
+		return 1;
+	}
+
+	HWND okno1;
+	okno1 = CreateWindowEx(WS_EX_WINDOWEDGE, ClassName, TEXT("Okno 1"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 400, 400, NULL, NULL, *hInst, NULL);
+
+	if (okno1 == NULL) {
+		MessageBox(NULL, TEXT("Stworzenie okna nieudane! =("), TEXT("WARNING"), MB_OK | MB_ICONWARNING);
+		return 2;
+	}
+
+	HWND hPrzyc = CreateWindowEx(0, TEXT("BUTTON"), TEXT("Dialog"), WS_CHILD | WS_VISIBLE,
+		5, 5, 50, 25, okno1, NULL, hInstance, NULL);
+
+	ShowWindow(okno1, nCmdShow);
+	UpdateWindow(okno1);
+
+	while (GetMessage(&Komunikat, NULL, 0, 0)) {
+		if (!IsDialogMessage(hPrzyc, &Komunikat))
+		{
+		TranslateMessage(&Komunikat);
+		DispatchMessage(&Komunikat);
+		}
+	}
+
+	UnregisterClass(ClassName, *hInst);
+	return Komunikat.wParam;
+}
+
+BOOL CALLBACK DlgProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (Msg)
+	{
+	case WM_COMMAND:
+	{
+		// reakcja na przyciski
+		switch (LOWORD(wParam))
+		{
+		case IDC_PRZYC1: EndDialog(hwnd, IDC_PRZYC1); break;
+		case IDC_PRZYC2: EndDialog(hwnd, IDC_PRZYC2); break;
+		case IDC_PRZYC3: EndDialog(hwnd, IDC_PRZYC3); break;
+		}
+	}
+	break;
+
+	default: return FALSE;
+	}
+	return true;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+
+	case WM_COMMAND:
+	{
+		int ret = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_PASEK), hwnd, DlgProc);
+		if (ret == IDC_PRZYC1) {
+			MessageBox(hwnd, TEXT("Wybrałeś \"Przycisk 1\" w oknie dialogowym!"), TEXT("Test"), MB_ICONINFORMATION);
+			//DestroyWindow(hwnd);
+		}
+		else if (ret == IDC_PRZYC2) {
+			MessageBox(hwnd, TEXT("Wybrałeś \"Przycisk 2\" w oknie dialogowym!"), TEXT("Test"), MB_ICONINFORMATION);
+		}
+		else if (ret == IDC_PRZYC3) {
+			MessageBox(hwnd, TEXT("Wybrałeś \"Przycisk 3\" w oknie dialogowym!"), TEXT("Test"), MB_ICONINFORMATION);
+		}
+
+	} break;
+
+	case WM_CLOSE:
+	{
+
+		if ((MessageBox(hwnd, TEXT("Czy chcesz wyłączyć okno ?"), TEXT("Pytanie"), MB_OKCANCEL)) == IDOK)
+			DestroyWindow(hwnd);
+	} break;
+
+	case WM_DESTROY:
+	{
+		PostQuitMessage(0);
+	} break;
+
+	default:
+		return DefWindowProcW(hwnd, msg, wParam, lParam);
+	}
+	return 0;
+}

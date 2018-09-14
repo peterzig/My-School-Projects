@@ -1,0 +1,308 @@
+#include <windows.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <sstream>
+#include <Strsafe.h>
+#include <vector>
+MSG Komunikat;
+
+WCHAR buffor[11];
+float liczba1;
+int zmienna = 0;
+
+HWND hText;
+HWND hprzycisk1;
+HWND hprzycisk2;
+HWND hprzycisk3;
+HWND hprzycisk4;
+HWND hprzycisk5;
+HWND hprzycisk6;
+HWND hprzycisk7;
+HWND hprzycisk8;
+HWND hprzycisk9;
+HWND hprzycisk0;
+HWND hprzyciskdodac;
+HWND hprzyciskodjac;
+HWND hprzyciskrazy;
+HWND hprzyciskpodzielic;
+HWND hprzyciskpomnozyc;
+HWND hprzyciskwynik;
+HWND hprzyciskkropka;
+HWND hprzyciskkasuj;
+
+float bufor()
+{
+	GetWindowText(hText, buffor, GetWindowTextLength(hText) + 1);
+	float schowek = _wtof(buffor);
+	return schowek;
+}
+void pobierz()
+{
+	GetWindowText(hText, buffor, GetWindowTextLength(hText) + 1);
+	liczba1 = _wtof(buffor);
+	SetWindowText(hText, L"");
+}
+
+void wstaw(float liczba)    // Wrzucenie zmienonej liczby do WCHARA;
+{
+	std::wostringstream woss;
+	woss << liczba;
+	std::wstring ws = woss.str();
+	const wchar_t* cwc = ws.c_str();
+	std::vector<wchar_t> buf(cwc, cwc + (ws.size() + 1));
+	wchar_t* liczba2 = &buf[0];
+	SetWindowText(hText, liczba2);
+}
+void dodaj()
+{
+
+	GetWindowText(hText, buffor, GetWindowTextLength(hText) + 1);
+
+	// Wyciągnięcie liczby z WCHARA
+
+	float wynik = liczba1 + _wtof(buffor);
+	if (wynik<1000000)
+		wstaw(wynik);
+	else SetWindowText(hText, L"Za duzo");
+}
+
+void odejmij()
+{
+	GetWindowText(hText, buffor, GetWindowTextLength(hText) + 1);
+
+	// Wyciągnięcie liczby z WCHARA
+
+	float wynik = liczba1 - _wtof(buffor);
+
+
+	wstaw(wynik);
+
+
+}
+
+void podziel()
+{
+
+	GetWindowText(hText, buffor, GetWindowTextLength(hText) + 1);
+
+	if (_wtof(buffor) != 0)
+	{
+		float wynik = liczba1 / _wtof(buffor);
+
+
+		wstaw(wynik);
+
+
+	}
+	else SetWindowText(hText, L"Blad");
+
+
+
+}
+
+void pomnoz()
+{
+	GetWindowText(hText, buffor, GetWindowTextLength(hText) + 1);
+	float wynik = liczba1 * _wtof(buffor);
+
+
+	wstaw(wynik);
+	zmienna = 0;
+
+}
+
+
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	srand(time(NULL));
+	// WYPEŁNIANIE STRUKTURY
+	WNDCLASSEX wc;
+
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = CS_VREDRAW | CS_HREDRAW;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = L"Klasa okna";
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+	// REJESTROWANIE KLASY OKNA
+	if (!RegisterClassEx(&wc))
+	{
+		MessageBox(NULL, L"Nie udalo sie zarejestrowac klasy okna.", L"Blad",
+			MB_ICONEXCLAMATION | MB_OK);
+		return 1;
+	}
+
+	// TWORZENIE OKNA
+	HWND hwnd;
+
+	hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, L"Klasa okna", L"Kalkulator", WS_OVERLAPPEDWINDOW ^ (WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX),
+		CW_USEDEFAULT, CW_USEDEFAULT, 220, 292, NULL, NULL, hInstance, NULL);
+
+	if (hwnd == NULL)
+	{
+		MessageBox(NULL, L"Nie udało się stworzyć okna.", L"Blad", MB_ICONEXCLAMATION);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow); // Pokaż okienko...
+
+	hprzycisk1 = CreateWindowEx(0, L"BUTTON", L"1", WS_CHILD | WS_VISIBLE, 0, 50, 50, 50, hwnd, (HMENU)1, hInstance, NULL);
+	hprzycisk2 = CreateWindowEx(0, L"BUTTON", L"2", WS_CHILD | WS_VISIBLE, 50, 50, 50, 50, hwnd, (HMENU)2, hInstance, NULL);
+	hprzycisk3 = CreateWindowEx(0, L"BUTTON", L"3", WS_CHILD | WS_VISIBLE, 100, 50, 50, 50, hwnd, (HMENU)3, hInstance, NULL);
+	hprzycisk4 = CreateWindowEx(0, L"BUTTON", L"4", WS_CHILD | WS_VISIBLE, 0, 100, 50, 50, hwnd, (HMENU)4, hInstance, NULL);
+	hprzycisk5 = CreateWindowEx(0, L"BUTTON", L"5", WS_CHILD | WS_VISIBLE, 50, 100, 50, 50, hwnd, (HMENU)5, hInstance, NULL);
+	hprzycisk6 = CreateWindowEx(0, L"BUTTON", L"6", WS_CHILD | WS_VISIBLE, 100, 100, 50, 50, hwnd, (HMENU)6, hInstance, NULL);
+	hprzycisk7 = CreateWindowEx(0, L"BUTTON", L"7", WS_CHILD | WS_VISIBLE, 0, 150, 50, 50, hwnd, (HMENU)7, hInstance, NULL);
+	hprzycisk8 = CreateWindowEx(0, L"BUTTON", L"8", WS_CHILD | WS_VISIBLE, 50, 150, 50, 50, hwnd, (HMENU)8, hInstance, NULL);
+	hprzycisk9 = CreateWindowEx(0, L"BUTTON", L"9", WS_CHILD | WS_VISIBLE, 100, 150, 50, 50, hwnd, (HMENU)9, hInstance, NULL);
+	hprzycisk0 = CreateWindowEx(0, L"BUTTON", L"0", WS_CHILD | WS_VISIBLE, 50, 200, 50, 50, hwnd, (HMENU)0, hInstance, NULL);
+	hprzyciskkropka = CreateWindowEx(0, L"BUTTON", L".", WS_CHILD | WS_VISIBLE, 0, 200, 50, 50, hwnd, (HMENU)11, hInstance, NULL);
+	hprzyciskwynik = CreateWindowEx(0, L"BUTTON", L"=", WS_CHILD | WS_VISIBLE, 100, 200, 50, 50, hwnd, (HMENU)12, hInstance, NULL);
+	hprzyciskdodac = CreateWindowEx(0, L"BUTTON", L"+", WS_CHILD | WS_VISIBLE, 150, 50, 50, 50, hwnd, (HMENU)13, hInstance, NULL);
+	hprzyciskodjac = CreateWindowEx(0, L"BUTTON", L"-", WS_CHILD | WS_VISIBLE, 150, 100, 50, 50, hwnd, (HMENU)14, hInstance, NULL);
+	hprzyciskrazy = CreateWindowEx(0, L"BUTTON", L"X", WS_CHILD | WS_VISIBLE, 150, 150, 50, 50, hwnd, (HMENU)15, hInstance, NULL);
+	hprzyciskpodzielic = CreateWindowEx(0, L"BUTTON", L"/", WS_CHILD | WS_VISIBLE, 150, 200, 50, 50, hwnd, (HMENU)16, hInstance, NULL);
+	hprzyciskkasuj = CreateWindowEx(0, L"BUTTON", L"←", WS_CHILD | WS_VISIBLE, 0, 0, 50, 50, hwnd, (HMENU)10, hInstance, NULL);
+
+
+
+	hText = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT, 50, 0, 150, 50, hwnd, (HMENU)18, hInstance, NULL);
+	UpdateWindow(hwnd);
+	HFONT hFont = CreateFont(40, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial");
+	SendMessage(hText, WM_SETFONT, WPARAM(hFont), TRUE);
+	SetWindowText(hText, buffor);
+	SendMessage(hprzyciskkasuj, WM_SETFONT, WPARAM(hFont), TRUE);
+
+
+
+	// Pętla komunikatów
+	while (GetMessage(&Komunikat, NULL, 0, 0))
+	{
+		TranslateMessage(&Komunikat);
+		DispatchMessage(&Komunikat);
+	}
+
+
+
+	return Komunikat.wParam;
+
+}
+
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+
+	srand(time(NULL));
+
+	static RECT r;
+
+
+
+
+	switch (msg)
+	{
+
+	case WM_CLOSE:
+		if (MessageBox(NULL, L"Czy chcesz zamknąć to okno ?", L"Zamykanie",
+			MB_ICONQUESTION | MB_YESNO) == 6)
+
+			DestroyWindow(hwnd);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	case WM_SIZE:
+	{
+		InvalidateRect(hwnd, &r, TRUE);
+	}
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdcOkno;
+		GetClientRect(hwnd, &r);
+		hdcOkno = BeginPaint(hwnd, &ps);
+
+
+
+
+		EndPaint(hwnd, &ps);
+	}
+
+				   break;
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+
+		case 18:
+			break;
+
+		case 10:
+		{
+			SetWindowText(hText, L"");
+			liczba1 = 0;
+			zmienna = 0;
+		}
+		case 11:
+		{
+
+		}break;
+		case 12:
+		{
+			if (zmienna == 1)dodaj();
+			else if (zmienna == 2)odejmij();
+			else if (zmienna == 3)pomnoz();
+			else if (zmienna == 4)podziel();
+		}break;
+		case 13:
+		{
+			pobierz();
+			zmienna = 1;
+		}break;
+		case 14:
+		{
+			pobierz();
+			zmienna = 2;
+		}break;
+		case 15:
+		{
+			pobierz();
+			zmienna = 3;
+		}break;
+		case 16:
+		{
+			pobierz();
+			zmienna = 4;
+		}break;
+		default:
+
+			if (GetWindowTextLength(hText) == 0)
+				wstaw(LOWORD(wParam));
+			else if (GetWindowTextLength(hText) < 6) {
+
+
+				wstaw((bufor() * 10) + (LOWORD(wParam)));
+			}
+
+		}break;
+
+
+		break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}

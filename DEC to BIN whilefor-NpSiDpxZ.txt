@@ -1,0 +1,28 @@
+// decnabinarkewhile.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <math.h>
+
+
+int main()
+{
+	long int dec, n;
+	int bin[100], i = 1, j;
+	printf("Podaj liczbe w decymalu: ");
+	scanf("%ld", &dec);
+	n = dec;
+
+	while (n != 0)
+	{
+		bin[i++] = n % 2;
+		n = n / 2;
+	}
+	for (j = i - 1; j > 0; j--)
+	{
+		printf("%d", bin[j]);
+	}
+	_getch();
+    return 0;
+}

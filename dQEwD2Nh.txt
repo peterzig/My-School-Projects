@@ -1,0 +1,33 @@
+// rownanie.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <math.h>
+
+
+int main()
+{
+	float a, b, c, d;
+	float y;
+	printf("podaj wartosc a: \n");
+	scanf("%d", &a);
+	printf("podaj wartosc b: \n");
+	scanf("%d", &b);
+	printf("podaj wartosc c: \n");
+	scanf("%d", &c);
+	printf("podaj wartosc d: \n");
+	scanf("%d", &d);
+	y = sqrt(a + b) / c*c - sqrt(d) + 5 / b - 4;
+		if (c*c==0 && b-4==0)
+		{
+			printf("Brak rozwiazania");
+		}
+		else
+		{
+			printf("Wynik to: %5.2f", y);
+		}
+
+		_getch();
+	return 0;
+}

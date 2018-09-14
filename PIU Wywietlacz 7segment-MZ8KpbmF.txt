@@ -1,0 +1,237 @@
+#include <windows.h>
+
+TCHAR NazwaAplikacji[] = TEXT("Aplikacja studencka");
+TCHAR NazwaKlasy[] = TEXT("OKNOGLOWNE");
+
+// ##### Definicja funkcji na samym dole #####
+void KtoreZielone(bool TabSeg[], int Liczba);
+// ###########################################
+// ##### Fukncja rysujaca kreske pozioma #####
+// ###########################################
+void KreskaPoz(HWND Okno, HDC Kontekst, int X, int Y, bool Zielone)
+{
+	HBRUSH Pedzel, Stary;
+	if (Zielone) Pedzel = CreateSolidBrush(0x00FF00); // Jezeli Zielone jest TRUE ma malowac na zielono
+	else Pedzel = CreateSolidBrush(0x333333); // Jezeli nie to na szaro
+	Stary = (HBRUSH)SelectObject(Kontekst, Pedzel);
+	POINT Uklad[6]; // Struktura zawierajaca punkty wielokata do narysowania
+	Uklad[0].x = X; Uklad[0].y = Y;
+	Uklad[1].x = X + 10; Uklad[1].y = Y + 10;
+	Uklad[2].x = X + 5; Uklad[2].y = Y + 40;
+	Uklad[3].x = X - 5; Uklad[3].y = Y + 50;
+	Uklad[4].x = X - 15; Uklad[4].y = Y + 40;
+	Uklad[5].x = X - 10; Uklad[5].y = Y + 10;
+	Polygon(Kontekst, Uklad, 6); // Rysowanie segmentu(wielokata) z elementow powyzej
+	SelectObject(Kontekst, Stary);
+	DeleteObject(Pedzel);
+	DeleteObject(Stary);
+}
+// ###########################################
+// ##### Fukncja rysujaca kreske pionowa #####
+// ###########################################
+void KreskaPion(HWND Okno, HDC Kontekst, int X, int Y, bool Zielone)
+{
+	HBRUSH Pedzel, Stary;
+	if (Zielone) Pedzel = CreateSolidBrush(0x00FF00); // Jezeli Zielone jest TRUE ma malowac na zielono
+	else Pedzel = CreateSolidBrush(0x333333); // Jezeli nie to na szaro
+	Stary = (HBRUSH)SelectObject(Kontekst, Pedzel);
+	POINT Uklad[6]; // Struktura zawierajaca punkty wielokata do narysowania
+	Uklad[0].x = X; Uklad[0].y = Y;
+	Uklad[1].x = X + 10; Uklad[1].y = Y - 10;
+	Uklad[2].x = X + 40; Uklad[2].y = Y - 10;
+	Uklad[3].x = X + 50; Uklad[3].y = Y;
+	Uklad[4].x = X + 40; Uklad[4].y = Y + 10;
+	Uklad[5].x = X + 10; Uklad[5].y = Y + 10;
+	Polygon(Kontekst, Uklad, 6); // Rysowanie segmentu(wielokata) z elementow powyzej
+	SelectObject(Kontekst, Stary);
+	DeleteObject(Pedzel);
+	DeleteObject(Stary);
+}
+// ###################################
+// ##### Glowna funkcja rysujaca #####
+// ###################################
+void Rysuj(HWND Okno, const int Licznik)
+{
+	bool TabSeg[7] = { 0 }; // Deklaracja tablicy z elementami bool, zainicjowana zerami
+							// Tablica TabSeg[7] ta jest wykorzystywana do 'podswietlania' odpowiedni segmentow
+							// Segmentow jest 7 wiec jest 7-elementowa tablica
+	PAINTSTRUCT PS;
+	HDC Kontekst = BeginPaint(Okno, &PS); // Tutaj zaczynamy rysowac piekne rzeczy
+	RECT Rect;
+	GetClientRect(Okno, &Rect);
+
+	// Tablica przez ta funkcje jest odpowiednio wypelniana wartosciami "1" w zależności od podanej "Liczby" do wyswietlenia
+	KtoreZielone(TabSeg, Licznik);
+
+	//KreskaPoz, pierwsze dwa parametry wiadomo, 3 i 4 gdzie ma narysowac segment(wielokat)
+	//ostatni paramet zawiera w tablicy '1' lub '0', w zaleznosci czy rysowany segment ma byc podswietlony(1) czy nie(0)
+	KreskaPoz(Okno, Kontekst, Rect.left + 27, Rect.top + 20, TabSeg[0]);
+	KreskaPoz(Okno, Kontekst, Rect.left + 82, Rect.top + 20, TabSeg[1]);
+	KreskaPoz(Okno, Kontekst, Rect.left + 22, Rect.top + 72, TabSeg[2]);
+	KreskaPoz(Okno, Kontekst, Rect.left + 77, Rect.top + 72, TabSeg[3]);
+	KreskaPion(Okno, Kontekst, Rect.left + 30, Rect.top + 20, TabSeg[4]);
+	KreskaPion(Okno, Kontekst, Rect.left + 25, Rect.top + 71, TabSeg[5]);
+	KreskaPion(Okno, Kontekst, Rect.left + 19, Rect.top + 123, TabSeg[6]);
+
+	//No i dla formalnosci malujemy zielona kropke :)
+	HBRUSH Stary, Kropka = CreateSolidBrush(0x00FF00);
+	Stary = (HBRUSH)SelectObject(Kontekst, Kropka);
+	Ellipse(Kontekst, Rect.left + 75, Rect.top + 120, Rect.left + 90, Rect.top + 135);
+	// kasowanie nie uzywanych elementow
+	SelectObject(Kontekst, Stary);
+	DeleteObject(Kropka);
+	DeleteObject(Stary);
+	EndPaint(Okno, &PS);
+}
+
+static LRESULT CALLBACK FunkcjaOkienkowa(HWND Okno, UINT Komunikat, WPARAM wParam, LPARAM lParam)
+{
+	static int Licznik = 0;
+	switch (Komunikat) {
+	case WM_PAINT:
+		Rysuj(Okno, Licznik);
+		break;
+	case WM_LBUTTONDOWN:
+		Licznik++;
+		Licznik %= 10; // Reszta z dzielenia przez 10
+		InvalidateRect(Okno, 0, 1);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(Okno, Komunikat, wParam, lParam);
+	}
+	return 0;
+}
+
+static bool RejestrujKlasy()
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.cbClsExtra = wc.cbWndExtra = 0;
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hInstance = GetModuleHandle(NULL);
+	wc.lpfnWndProc = &FunkcjaOkienkowa;
+	wc.lpszClassName = NazwaKlasy;
+	wc.lpszMenuName = NULL;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	return (RegisterClassEx(&wc) != 0);
+}
+
+static void WyrejestrujKlasy()
+{
+	UnregisterClass(NazwaKlasy, GetModuleHandle(NULL));
+}
+
+int WINAPI WinMain(HINSTANCE Instancja, HINSTANCE Poprzednia, LPSTR Parametry, int Widocznosc)
+{
+	// Zarejestruj klasę. Protestuj, jeżeli wystąpił błąd.
+	if (!RejestrujKlasy())
+	{
+		MessageBox(NULL, TEXT("Nie udało się zarejestrować klasy okna!"), NazwaAplikacji, MB_ICONSTOP | MB_OK);
+		return 1;
+	}
+	// Stwórz główne okno. Również protestuj, jeżeli wystąpił błąd.
+	HWND GlowneOkno = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE, NazwaKlasy, TEXT("Okno"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, Instancja, NULL);
+	if (GlowneOkno == NULL)
+	{
+		MessageBox(NULL, TEXT("Nie udało się stworzyć głównego okna!"), NazwaAplikacji, MB_ICONSTOP | MB_OK);
+		return 2;
+	}
+	// Wyświetl i uaktualnij nowo stworzone okno.
+	ShowWindow(GlowneOkno, Widocznosc);
+	UpdateWindow(GlowneOkno);
+	// Główna pętla komunikatów wątku.
+	MSG Komunikat;
+	while (GetMessage(&Komunikat, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&Komunikat);
+		DispatchMessage(&Komunikat);
+	}
+	// Zwolnij pamięć klas i zakończ proces.
+	WyrejestrujKlasy();
+	return static_cast<int>(Komunikat.wParam);
+}
+// ###################################################################################
+// ##### Funkcja wypelniajaca tablice boolawska w zaleznosci od podanej 'Liczby' #####
+// ###################################################################################
+void KtoreZielone(bool TabSeg[], int Liczba)
+{
+	switch (Liczba)
+	{
+	case 0:
+		TabSeg[0] = 1;
+		TabSeg[1] = 1;
+		TabSeg[2] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		TabSeg[6] = 1;
+		break;
+	case 1: // np. aby narysowac jedynke podswietlic nalezy na zielono odpowiednie 2 segmety
+		TabSeg[1] = 1;
+		TabSeg[3] = 1;
+		break;
+	case 2:
+		TabSeg[1] = 1;
+		TabSeg[2] = 1;
+		TabSeg[4] = 1;
+		TabSeg[5] = 1;
+		TabSeg[6] = 1;
+		break;
+	case 3:
+		TabSeg[1] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		TabSeg[5] = 1;
+		TabSeg[6] = 1;
+		break;
+	case 4:
+		TabSeg[0] = 1;
+		TabSeg[1] = 1;
+		TabSeg[4] = 0;
+		TabSeg[5] = 1;
+		TabSeg[3] = 1;
+		break;
+	case 5:
+		TabSeg[0] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		TabSeg[5] = 1;
+		TabSeg[6] = 1;
+		break;
+	case 6:
+		TabSeg[0] = 1;
+		TabSeg[2] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		TabSeg[5] = 1;
+		TabSeg[6] = 1;
+		break;
+	case 7:
+		TabSeg[1] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		break;
+	case 8:
+		TabSeg[0] = 1;
+		TabSeg[1] = 1;
+		TabSeg[2] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		TabSeg[5] = 1;
+		TabSeg[6] = 1;
+		break;
+	case 9:
+		TabSeg[0] = 1;
+		TabSeg[1] = 1;
+		TabSeg[3] = 1;
+		TabSeg[4] = 1;
+		TabSeg[5] = 1;
+		TabSeg[6] = 1;
+		break;
+	}
+}

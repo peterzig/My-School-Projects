@@ -1,0 +1,111 @@
+// [PO] Klasy Numer Telefonu.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <iostream>
+#include <stdio.h>
+#include <string>
+
+using namespace std;
+
+class NumerTelefonu
+{
+	string rodzaj;
+	int kierunkowy;
+	int numer;
+public:
+	NumerTelefonu(string, int, int);
+	string f_rodzaj();
+	int kierun();
+	int Numer();
+};
+
+NumerTelefonu::NumerTelefonu(string _rodzaj, int _kierunkowy, int _numer)
+{
+	rodzaj = _rodzaj;
+	kierunkowy = _kierunkowy;
+	numer = _numer;
+}
+
+string NumerTelefonu::f_rodzaj()
+{
+	return rodzaj;
+}
+
+int NumerTelefonu::kierun()
+{
+	return kierunkowy;
+}
+
+int NumerTelefonu::Numer()
+{
+	return numer;
+}
+
+class Kontakt
+{
+	char imie[80];
+	int wiek;
+
+public:
+	void zapamietaj(char * napis, int wiek);
+	void wypisz();
+};
+
+void Kontakt::zapamietaj(char* napis, int _wiek)
+{
+	strcpy(imie, napis);
+	wiek = _wiek;
+}
+
+void Kontakt::wypisz()
+{
+cout << "\t" << imie << ", lat: " << wiek << endl;
+}
+
+
+int main()
+{
+	Kontakt student1, student2;
+
+	int numer, kierunkowy;
+	string typ;
+	cout << "Podaj numer telefonu \n";
+	cin >> numer;
+	cout << "Podaj kierunkowy \n";
+	cin >> kierunkowy;
+	cout << "Podaj typ \n";
+	cin >> typ;
+	NumerTelefonu nowy(typ, kierunkowy, numer);
+
+	cout << "Wpisane Dane: \n";
+	cout << nowy.f_rodzaj() <<"  +" << nowy.kierun() << nowy.Numer() <<endl;
+
+
+	// ponizej inna para kaloszy ;)
+	string imie1;
+	string nazwisko1;
+	string imie2;
+	string nazwisko2;
+	int wiek1;
+	int wiek2;
+	cout << "STUDENT1" << endl;
+	cout << "Podaj swoje imie [ENTER] nazwisko:" << endl;
+	cin >> imie1 >> nazwisko1;
+	cout << "Podaj swoj wiek" << endl;
+	cin >> wiek1;
+	cout << "STUDENT2" << endl;
+	cout << "Podaj swoje imie i nazwisko:" << endl;
+	cin >> imie2 >> nazwisko2;
+	cout << "Podaj swoj wiek" << endl;
+	cin >> wiek2;
+	cout << "Wprowadzone Dane" << endl;
+	cout << "Student nr 1: " << imie1 << " " << nazwisko1 << " lat: " << wiek1 << endl;
+	cout << "Student nr 2: " << imie2 << " " << nazwisko2 << " lat: " << wiek2 << endl;
+	cout << "Program zakonczy swoje dzialanie" << endl;
+	cout << "Mozna bezpiecznie wylaczyc komputer :)" << endl;
+
+	_getch();
+	return 0;
+}

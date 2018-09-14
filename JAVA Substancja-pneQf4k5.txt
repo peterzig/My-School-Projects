@@ -1,0 +1,67 @@
+package substancja;
+
+import java.util.Scanner;
+
+public class Substancja {
+
+    public static void main(String[] args) {
+        
+        double max, buff, procent,ilosc;
+        int dzien=1;
+        Scanner Wejscie = new Scanner(System.in);
+        
+        while(true)
+       {
+        System.out.println("Ilosc substancji:");
+        ilosc = Wejscie.nextDouble();
+        System.out.println("ubytek w %:");
+        procent = Wejscie.nextDouble();
+        System.out.println("do jakiej ilosci");
+        max = Wejscie.nextDouble();
+        procent = procent/100;
+        System.out.println("procent="+procent);
+        
+        if(ilosc < 5  || procent > 100 || procent < 0)
+            {
+            System.out.println("Blad!");
+            System.out.print("\nCzy chcesz ponownie uruchomić program? (t/n)? ");
+            String var = Wejscie.next();
+            if(var.equalsIgnoreCase("T")){// Pasuje zarówno "T" jak i "t"
+                main(null); // jeżeli input to "T" lub "t" wraca do maina
+            }
+            else if(var.equalsIgnoreCase("N")){
+               System.exit(0);
+            }
+            else {
+                System.exit(0);
+            }
+          }
+        
+        buff=ilosc;
+        System.out.println("|-----------------------------|");
+        System.out.println("| dzień|    gram   |  procent |");
+        System.out.println("|-----------------------------|");
+        do   
+        {
+            System.out.printf("|   %d  |    %5.2fg |   %5.1f  | \n",dzien,ilosc,(ilosc/buff)*100 );
+            dzien++;
+            ilosc = ilosc * procent;
+        }
+        while(ilosc>max);
+        System.out.println("|-----------------------------|");
+        System.out.println("Substancja spadla ponizej "+max+"g po "+dzien+" dniach");    
+        
+         System.out.print("\nCzy chcesz ponownie uruchomić program? (t/n)? ");
+            String var = Wejscie.next();
+            if(var.equalsIgnoreCase("T")){// Pasuje zarówno "T" jak i "t"
+                main(null); // jeżeli input to "T" lub "t" wraca do maina
+            }
+            else if(var.equalsIgnoreCase("N")){
+               System.exit(0);
+            }
+            else {
+                System.exit(0);
+            }
+        }
+    }
+}

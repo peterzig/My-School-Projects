@@ -1,0 +1,99 @@
+// Budynki2.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <string>
+#include <iostream>
+#include <conio.h>
+
+using namespace std;
+
+class Building
+{
+
+public:
+	string buildingName;
+	int buildCost;
+	int maintainCost;
+	int resourcesUsed;
+	int resourcesProduced;
+	Building();
+	void addBuilding(int buildCost, int resourcesUsed);
+};
+
+class Resource
+{
+public:
+	string resourceName;
+	int resourceAmount;
+	int resourceAdded;
+	int resourceDeleted;
+	Resource();
+	void addResource(int resourceAdded, int resourceAmount);
+	void deleteResource(int resourceDeleted, int resourceAmount);
+};
+
+Building::Building()
+{
+	buildingName = "Building";
+	buildCost = 0;
+	maintainCost = 0;
+	resourcesUsed = 0;
+	resourcesProduced = 0;
+}
+
+Resource::Resource()
+{
+	resourceName = "Resource";
+	resourceAmount = 0;
+	resourceAdded = 0;
+	resourceDeleted = 0;
+}
+
+void Resource::addResource(int resourceAdded, int resourceAmount)
+{
+	resourceAmount += resourceAdded;
+
+}
+
+
+
+
+int main()
+{
+	Building Quarry;
+	Quarry.buildingName = "Kamieniolom";
+	Quarry.buildCost = 200;
+	Quarry.maintainCost = 100;
+	Quarry.resourcesUsed = 10;
+	Quarry.resourcesProduced = 20;
+	Resource Gold;
+	Gold.resourceAmount = 300;
+	Resource Stone;
+	Stone.resourceAmount = 0;	
+	Building Kupa;
+	cout << "Nazwa: " << Quarry.buildingName
+		<< "\nKoszt budowy: " << Quarry.buildCost
+		 << "\nKoszt utrzymania: " << Quarry.maintainCost 
+		<< "\nUzyte zasoby: "<< Quarry.resourcesUsed 
+		<< "\nProdukowane zasoby: " << Quarry.resourcesProduced << "\n"
+		<< endl;
+	cout << "Nazwa: " << Kupa.buildingName
+		<< "\nKoszt budowy: " << Kupa.buildCost
+		<< "\nKoszt utrzymania: " << Kupa.maintainCost
+		<< "\nUzyte zasoby: " << Kupa.resourcesUsed
+		<< "\nProdukowane zasoby: " << Kupa.resourcesProduced << "\n"
+		<< "\nIlosc zlota:" <<Gold.resourceAmount << "\nIlosc kamienia: "<< Stone.resourceAmount<< "\n"
+		<< endl;
+	cout << "Czy chcesz kupic kamieniolom za 200 golda? [T/N]" << endl;
+	char wybor;
+	cin >> wybor;
+	switch(wybor)
+	{
+	case 'T': cout << "Kupiono " << Quarry.buildingName << " za " << Quarry.buildCost << " golda " << endl; break;
+	case 'N': cout << "Nie to nie :)" << endl; break;
+	default: cout << "Cos sie zepsulo, sprobuj jeszcze raz"; break;
+	}
+	_getch();
+    return 0;
+}

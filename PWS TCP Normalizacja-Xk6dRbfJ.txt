@@ -1,0 +1,100 @@
+#include "stdafx.h"
+#include <winsock.h>
+#include <conio.h>
+
+#pragma comment(lib,"ws2_32.lib")
+
+void main()
+{
+	WSADATA wsadata;
+	if( WSAStartup(MAKEWORD(2,2), &wsadata) != 0) 
+	{
+		printf("WSAStartup failed with error: %d\n", WSAGetLastError());
+		_getch();
+        return;
+	}
+
+	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s == INVALID_SOCKET)
+	{
+		WSACleanup();
+		printf("Creating socket failed with error: %d\n", WSAGetLastError());
+		_getch();
+        return;
+	}
+	sockaddr_in serwer;
+	serwer.sin_family = AF_INET;
+	serwer.sin_port = htons(7801);
+	serwer.sin_addr.s_addr = inet_addr("192.168.0.13");
+
+	while(true)
+	{
+		if(connect(s, (sockaddr*) &serwer, sizeof(serwer)) < 0)
+		{
+			printf("Polaczenie z serwerem nieudane!\n");
+			_getch();
+			continue;
+		}
+		send(s, "NORM", sizeof("NORM"), 0);
+
+		while (true)
+		{
+			signed char znak;
+			int ilosc, wartosc, Result;
+			Result = recv(s, (char*)&znak, sizeof(znak), 0);
+			if (Result == SOCKET_ERROR)
+			{
+				break;
+			}
+			wartosc = znak;
+			ilosc = abs(wartosc);
+			float *tab = new float[ilosc];
+
+			Result = recv(s, (char*)&(*tab), sizeof(float) * ilosc, 0);
+			if (Result == SOCKET_ERROR)
+			{
+				break;
+			}
+
+			int min, max, newMin, newMax = 1;
+			min = max = tab[0];
+
+			printf("Otrzymane liczby:\n");
+			
+			for (int i = 0; i < ilosc; i++)
+			{
+				printf("%f; ", tab[i]);
+				if (tab[i] < min)
+					min = tab[i];
+				else if (tab[i] > max)
+					max = tab[i];
+			}
+			if (wartosc < 0)
+			{
+				newMin = -1;
+			}
+			else if (wartosc > 0)
+			{
+				newMin = 0;
+			}
+			else
+			{
+				continue;
+			}
+			printf("\nZnormalizowane liczby do przedzialu <%d, %d>:\n", newMin, newMax);
+			for (int i = 0; i < ilosc; i++)
+			{
+				tab[i] = newMin + (((tab[i] - min) * (newMax - newMin)) / (max - min) );
+				printf("%f; ", tab[i]);
+			}
+			delete[] tab;
+			getch();
+		}
+	}
+
+	printf("Konczenie dzialania programu\n");
+	shutdown(s, 2);
+	closesocket(s);
+	WSACleanup();
+	getch();
+}

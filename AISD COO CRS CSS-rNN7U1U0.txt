@@ -1,0 +1,321 @@
+#include <stdio.h>
+#include <conio.h>
+#include <malloc.h>
+ 
+struct ElementMacierzyCOO
+{
+        unsigned int Wiersz;
+        unsigned int Kolumna;
+        double Wartosc;
+};
+ 
+struct MacierzRzadkaCOO
+{
+        unsigned int Niezerowych;
+        unsigned int Wiersze;
+        unsigned int Kolumny;
+        struct ElementMacierzyCOO *Elementy;
+};
+ 
+struct ElementMacierzyCCS
+{
+        unsigned int Wiersz;
+        double Wartosc;
+};
+ 
+struct MacierzRzadkaCCS
+{
+        unsigned int Niezerowych;
+        unsigned int Wiersze;
+        unsigned int Kolumny;
+        unsigned int *col_ptr;
+        struct ElementMacierzyCCS *Elementy;
+};
+ 
+struct ElementMacierzyCRS
+{
+        unsigned int Kolumna;
+        double Wartosc;
+};
+ 
+struct MacierzRzadkaCRS
+{
+        unsigned int Niezerowych;
+        unsigned int Wiersze;
+        unsigned int Kolumny;
+        unsigned int *row_ptr;
+        struct ElementMacierzyCRS *Elementy;
+};
+ 
+bool WczytajMacierz(MacierzRzadkaCOO *MacierzCOO);
+void ZwolnijMacierzCOO(MacierzRzadkaCOO *MacierzCOO);
+void WyswietlMacierzCOO(MacierzRzadkaCOO *MacierzCOO);
+ 
+//CCS
+MacierzRzadkaCCS* KonwertujCOOnaCCS(MacierzRzadkaCOO *MacierzCOO);
+void WyswietlMacierzCCS(MacierzRzadkaCCS *MacierzCCS);
+void ZwolnijMacierzCCS(MacierzRzadkaCCS *MacierzCCS);
+ 
+//CRS
+MacierzRzadkaCRS* KonwertujCOOnaCRS(MacierzRzadkaCOO *MacierzCOO);
+void WyswietlMacierzCRS(MacierzRzadkaCRS *MacierzCRS);
+void ZwolnijMacierzCRS(MacierzRzadkaCRS *MacierzCRS);
+ 
+int main()
+{
+        MacierzRzadkaCOO *MacierzCOO = (MacierzRzadkaCOO*)malloc(sizeof(MacierzRzadkaCOO));
+        if(MacierzCOO != NULL)
+        {
+                if(WczytajMacierz(MacierzCOO)) //Udalo sie wczytac macierz wiec dzialamy
+                {
+                        WyswietlMacierzCOO(MacierzCOO);
+                       
+                        //Zabawa z macierzami CCS i CRS
+                        MacierzRzadkaCCS *MacierzCCS = NULL;
+                        MacierzRzadkaCRS *MacierzCRS = NULL;
+ 
+                        MacierzCCS = KonwertujCOOnaCCS(MacierzCOO);
+                        MacierzCRS = KonwertujCOOnaCRS(MacierzCOO);
+ 
+                        if(MacierzCCS != NULL) //Mamy przekonwertowana macierz, hura kurwo
+                        {
+                                WyswietlMacierzCCS(MacierzCCS);
+                                ZwolnijMacierzCCS(MacierzCCS); //Pamietac o zwolnieniu pamieci
+                        }
+ 
+                        if(MacierzCRS != NULL) //I CRS jest heh
+                        {
+                                WyswietlMacierzCRS(MacierzCRS);
+                                ZwolnijMacierzCRS(MacierzCRS); //Pamietac o zwolnieniu pamieci
+                        }
+ 
+                        //Zwalniamy pamiec po COO
+                        ZwolnijMacierzCOO(MacierzCOO);
+                }
+                else
+                {
+                        free(MacierzCOO); //Pamietac o zwolnieniu pamieci
+                }
+        }
+        _getch();
+        return 0;
+}
+ 
+ 
+void WyswietlMacierzCCS(MacierzRzadkaCCS *MacierzCCS)
+{
+        if(MacierzCCS != NULL)
+        {
+                printf("val: ");
+                for(unsigned int i = 0; i < MacierzCCS->Niezerowych; i++)
+                        printf("%5.2lf ", MacierzCCS->Elementy[i].Wartosc);
+                printf("\n");
+ 
+                printf("row_ind: ");
+                for(unsigned int i = 0; i < MacierzCCS->Niezerowych; i++)
+                        printf("%i ", MacierzCCS->Elementy[i].Wiersz);
+                printf("\n");
+ 
+                printf("col_ptr: ");
+                for(unsigned int i = 0; i < MacierzCCS->Kolumny; i++)
+                        printf("%i ", MacierzCCS->col_ptr[i]);
+                printf("\n\n\n");
+        }
+}
+ 
+void WyswietlMacierzCRS(MacierzRzadkaCRS *MacierzCRS)
+{
+        if(MacierzCRS != NULL)
+        {
+                if(MacierzCRS->Elementy != NULL)
+                {
+                        printf("val: ");
+                        for(unsigned int i = 0; i < MacierzCRS->Niezerowych; i++)
+                                printf("%5.2lf ", MacierzCRS->Elementy[i].Wartosc);
+                        printf("\n");
+ 
+                        printf("col_ind: ");
+                        for(unsigned int i = 0; i < MacierzCRS->Niezerowych; i++)
+                                printf("%i ", MacierzCRS->Elementy[i].Kolumna);
+                        printf("\n");
+ 
+                        printf("row_ptr: ");
+                        for(unsigned int i = 0; i < MacierzCRS->Wiersze; i++)
+                                printf("%i ", MacierzCRS->row_ptr[i]);
+                        printf("\n");
+                }
+        }
+}
+ 
+ 
+void ZwolnijMacierzCCS(MacierzRzadkaCCS *MacierzCCS)
+{
+        if(MacierzCCS != NULL)
+        {
+                free(MacierzCCS->Elementy);
+                free(MacierzCCS->col_ptr);
+                free(MacierzCCS);
+        }
+}
+ 
+void ZwolnijMacierzCRS(MacierzRzadkaCRS *MacierzCRS)
+{
+        if(MacierzCRS != NULL)
+        {
+                free(MacierzCRS->Elementy);
+                free(MacierzCRS->row_ptr);
+                free(MacierzCRS);
+        }
+}
+ 
+MacierzRzadkaCCS* KonwertujCOOnaCCS(MacierzRzadkaCOO *MacierzCOO)
+{
+        MacierzRzadkaCCS *MacierzCCS = (MacierzRzadkaCCS*)malloc(sizeof(MacierzRzadkaCCS)); //No to alokujemy to gowno
+        if(MacierzCCS != NULL)
+        {
+                MacierzCCS->Elementy = (ElementMacierzyCCS*)malloc(sizeof(ElementMacierzyCCS)*(MacierzCOO->Niezerowych));
+                if(MacierzCCS->Elementy != NULL)
+                {
+                        //Najpierw uzupelnijmy sobie dane ;p
+                        MacierzCCS->Kolumny = MacierzCOO->Kolumny;
+                        MacierzCCS->Wiersze = MacierzCOO->Wiersze;
+                        MacierzCCS->Niezerowych = MacierzCOO->Niezerowych;
+                        MacierzCCS->col_ptr = (unsigned int*)malloc(sizeof(unsigned int) * MacierzCCS->Kolumny); //Juz alokujemy sobie pamiec na przeskoki, a ilosc przeskokow jest rowna po prostu iloscia kolumn
+ 
+                        //UZUPELNIAMY col_ptr zerami
+                        for(unsigned int i = 0; i < MacierzCCS->Kolumny; i++) MacierzCCS->col_ptr[i] = 0;
+ 
+                        for(unsigned int i = 0; i < MacierzCCS->Niezerowych; i++) //To przepisujemy
+                        {
+                                //Najpierw pospisujemy to co niezmienne :)
+                                MacierzCCS->Elementy[i].Wiersz = MacierzCOO->Elementy[i].Wiersz;
+                                MacierzCCS->Elementy[i].Wartosc = MacierzCOO->Elementy[i].Wartosc;
+ 
+                                //A teraz akcja, bo trzeba pamiętac o uzupelnianiu tego col_ptr
+                                if(MacierzCCS->col_ptr[(MacierzCOO->Elementy[i].Kolumna - 1)] < MacierzCOO->Elementy[i].Wiersz)
+                                {
+                                        MacierzCCS->col_ptr[(MacierzCOO->Elementy[i].Kolumna - 1)] = MacierzCOO->Elementy[i].Wiersz;
+                                }
+                        }
+ 
+                        //I na koniec dodajemy col_ptr
+                        for(unsigned int i = 0; i < MacierzCCS->Kolumny - 1; i++)
+                        {
+                                MacierzCCS->col_ptr[i + 1] += MacierzCCS->col_ptr[i];
+                        }
+                        return MacierzCCS;
+                }
+                free(MacierzCCS); //Nie udalo sie zaalokowac pamieci na elementy to chuj z taka macierza ;_;
+                return NULL;
+        }
+        return NULL;
+}
+ 
+ 
+MacierzRzadkaCRS* KonwertujCOOnaCRS(MacierzRzadkaCOO *MacierzCOO)
+{
+        MacierzRzadkaCRS *MacierzCRS = (MacierzRzadkaCRS*)malloc(sizeof(MacierzRzadkaCRS)); //No to alokujemy to gowno
+        if(MacierzCRS != NULL)
+        {
+                MacierzCRS->Elementy = (ElementMacierzyCRS*)malloc(sizeof(ElementMacierzyCRS)*(MacierzCOO->Niezerowych));
+                if(MacierzCRS->Elementy != NULL)
+                {
+                        //Najpierw uzupelnijmy sobie dane ;p
+                        MacierzCRS->Kolumny = MacierzCOO->Kolumny;
+                        MacierzCRS->Wiersze = MacierzCOO->Wiersze;
+                        MacierzCRS->Niezerowych = MacierzCOO->Niezerowych;
+                        MacierzCRS->row_ptr = (unsigned int*)malloc(sizeof(unsigned int) * MacierzCRS->Wiersze); //Juz alokujemy sobie pamiec na przeskoki, a ilosc przeskokow jest rowna po prostu ilosci wierszow
+ 
+                        //UZUPELNIAMY row_ptr zerami
+                        for(unsigned int i = 0; i < MacierzCRS->Wiersze; i++) MacierzCRS->row_ptr[i] = 0;
+ 
+                        for(unsigned int i = 0; i < MacierzCRS->Niezerowych; i++) //To przepisujemy
+                        {
+                                //Najpierw pospisujemy to co niezmienne :)
+                                MacierzCRS->Elementy[i].Kolumna = MacierzCOO->Elementy[i].Kolumna;
+                                MacierzCRS->Elementy[i].Wartosc = MacierzCOO->Elementy[i].Wartosc;
+ 
+                                //A teraz akcja, bo trzeba pamiętac o uzupelnianiu tego row_ptr
+                                if(MacierzCRS->row_ptr[(MacierzCOO->Elementy[i].Wiersz - 1)] < MacierzCOO->Elementy[i].Kolumna)
+                                {
+                                        MacierzCRS->row_ptr[(MacierzCOO->Elementy[i].Wiersz - 1)] = MacierzCOO->Elementy[i].Kolumna;
+                                }
+                        }
+                        //I na koniec dodajemy row_ptr
+                        for(unsigned int i = 0; i < MacierzCRS->Wiersze - 1; i++)
+                        {
+                                MacierzCRS->row_ptr[i + 1] += MacierzCRS->row_ptr[i];
+                        }
+                        return MacierzCRS;
+                }
+                free(MacierzCRS); //Nie udalo sie zaalokowac pamieci na elementy to chuj z taka macierza ;_;
+                return NULL;
+        }
+        return NULL;
+}
+ 
+ 
+void WyswietlMacierzCOO(MacierzRzadkaCOO *MacierzCOO)
+{
+        if(MacierzCOO != NULL)
+        {
+                if(MacierzCOO->Elementy != NULL)
+                {
+                        unsigned int wartownik = 0;
+                        printf("MacierzRzadkaCOO:\n------------\nWiersze [ Wartosci ]\n\n");
+                        for(unsigned int i = 0; i < MacierzCOO->Wiersze && wartownik != MacierzCOO->Niezerowych; i++)
+                        {
+                                printf("%2i [ ", i + 1);
+                                for(unsigned int x = 0; x < MacierzCOO->Kolumny && wartownik != MacierzCOO->Niezerowych; x++)
+                                {
+                                        for(unsigned int y = 0; y < MacierzCOO->Niezerowych && wartownik != MacierzCOO->Niezerowych; y++) //Lecimy i sprawdzamy czy jest element w takiej kolumnie i wierszu
+                                        {
+                                                if((i == (MacierzCOO->Elementy[y].Wiersz - 1)) && (x == (MacierzCOO->Elementy[y].Kolumna - 1))) //Udalo sie znalezc
+                                                {
+                                                        printf("%5.3lf ", MacierzCOO->Elementy[y].Wartosc);
+                                                        wartownik++; //+1 znaleziony element
+                                                        break;
+                                                }
+                                        }
+                                }
+                                printf("]\n");
+                        }
+                        printf("\n");
+                }
+        }
+}
+ 
+bool WczytajMacierz(MacierzRzadkaCOO *MacierzCOO)
+{
+        FILE *plik = fopen("Macierz.txt", "r");
+        if(plik != NULL)
+        {
+                fscanf(plik, "%i %i %i", &MacierzCOO->Wiersze, &MacierzCOO->Kolumny, &MacierzCOO->Niezerowych); //Zczytujemy podstawowe dane macierzy
+                MacierzCOO->Elementy = (ElementMacierzyCOO*)malloc(sizeof(ElementMacierzyCOO)*MacierzCOO->Niezerowych); //Alokujemy pamiec na ilosc elementow niezerowych
+               
+                if(MacierzCOO->Elementy != NULL)
+                {
+                        for(unsigned int i = 0; i < MacierzCOO->Niezerowych; i++)
+                        {
+                                fscanf(plik, "%i %i %lf", &MacierzCOO->Elementy[i].Wiersz, &MacierzCOO->Elementy[i].Kolumna, &MacierzCOO->Elementy[i].Wartosc); //Pokolei lecimy ze zczytem do macierzy COO
+                        }
+                        fclose(plik); //Pamietajmy o zamknieciu pliku
+                        return true;
+                }
+                else
+                {
+                        fclose(plik); //Pamietajmy o zamknieciu pliku
+                        return false;
+                }
+        }
+        return false;
+}
+ 
+void ZwolnijMacierzCOO(MacierzRzadkaCOO *MacierzCOO)
+{
+        if(MacierzCOO != NULL)
+        {
+                free(MacierzCOO->Elementy);
+                free(MacierzCOO);
+        }
+}

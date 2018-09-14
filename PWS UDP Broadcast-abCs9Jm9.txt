@@ -1,0 +1,95 @@
+#pragma comment(lib, "Ws2_32.lib") 
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <windows.h> 
+#include <conio.h>
+#include <stdio.h> 
+#include <time.h> 
+#include <string> 
+#include <vector> 
+
+using namespace std;
+
+int main() {
+	WSADATA wsa;  WSAStartup(MAKEWORD(2, 2), &wsa); 
+	SOCKET sockout = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  
+	SOCKET sockin = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  
+	SOCKADDR_IN broadcast, receive;  
+	broadcast.sin_addr.s_addr = htonl(INADDR_BROADCAST); 
+	broadcast.sin_family = receive.sin_family = AF_INET;  
+	broadcast.sin_port = receive.sin_port = htons(5001);  
+	receive.sin_addr.s_addr = htonl(INADDR_ANY);  
+	bind(sockout, (SOCKADDR*)&broadcast, sizeof(broadcast)); 
+	bind(sockin, (SOCKADDR*)&receive, sizeof(receive));    
+	int one = 1;  
+	setsockopt(sockout, SOL_SOCKET, SO_BROADCAST, (char*)&one, sizeof(one));
+
+	char buffer[200] = "";  
+	char random[61];    
+	int length, wynik;  
+	int inSize = sizeof(receive);  
+	fd_set set;  
+	timeval timeout;  
+	bool exists;
+
+	vector<string> hosty;
+
+	while (1) {
+		if (_kbhit()) { if (_getch() == VK_ESCAPE) { 
+			sendto(sockout, "KONIEC", strlen("KONIEC"), 0, (SOCKADDR*)&broadcast, sizeof(broadcast));    
+			break; 
+		} 
+		else { 
+			srand(clock());     
+			length = 20 + rand() % 41;     
+			for (int i = 0; i < length; ++i) { 
+				srand(clock() + i*i);      
+				random[i] = 32 + rand() % 95; 
+			}     
+			random[length] = '\0';     
+			strcpy(buffer, "Piotr Zaporowski ");     
+			strcat(buffer, random);     
+			sendto(sockout, buffer, strlen(buffer), 0, (SOCKADDR*)&broadcast, sizeof(broadcast)); 
+			} 
+		}
+		else {
+			timeout.tv_sec = 0;    
+			timeout.tv_usec = 100 * 1000;    
+			FD_ZERO(&set);    
+			FD_SET(sockin, &set);
+			wynik = select(FD_SETSIZE, &set, NULL, NULL, &timeout);   
+			if (wynik > 0) { 
+				memset(buffer, 0, sizeof(buffer));     
+				recvfrom(sockin, buffer, sizeof(buffer), 0, (SOCKADDR*)&receive, &inSize);     
+				if (!strcmp(buffer, "KONIEC")) { 
+					for (int i = hosty.size() - 1; i >= 0; --i) { 
+						if (hosty[i] == inet_ntoa(receive.sin_addr)) { 
+							hosty.erase(hosty.begin() + i);        break; 
+						} 
+					} 
+				} else { 
+					exists = false;      
+					for (int i = 0; i < hosty.size(); ++i) { 
+						if (hosty[i] == inet_ntoa(receive.sin_addr)) { 
+							exists = true;        
+							break; 
+						} 
+					}      
+					if (!exists) hosty.push_back(inet_ntoa(receive.sin_addr));           
+					for (int i = 0; i < hosty.size(); ++i) { 
+						printf("%s", hosty[i].c_str());       
+						if (i == hosty.size() - 1) printf("\n");       
+						else printf(", "); }      
+					printf("%s: %s\n\n", inet_ntoa(receive.sin_addr), buffer); 
+				} 
+			}
+		}
+	}
+
+	shutdown(sockin, 2);  
+	shutdown(sockout, 2);  
+	closesocket(sockin); 
+	closesocket(sockout);
+
+	WSACleanup();
+}

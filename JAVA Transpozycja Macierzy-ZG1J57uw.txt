@@ -1,0 +1,52 @@
+package matrix;
+
+  import java.util.Random;
+
+    public class Matrix {
+   private int[][] _matrix;
+   
+   public Matrix(int n, int m) {
+      _matrix = new int[n][m];
+   }
+   
+   public Matrix(int n) {
+      this(n, n);
+   }
+   
+   public void print() {
+      for (int i = 0; i < _matrix.length; i++) {
+          for (int j = 0; j < _matrix[i].length; j++) {
+              System.out.print(" " + _matrix[i][j]);
+          }
+          System.out.println("");
+      }
+   }
+   
+   public void fillRandom() {
+      Random rand = new Random();
+      for (int i = 0; i < _matrix.length; i++) {
+          for (int j = 0; j < _matrix[i].length; j++) {
+             _matrix[i][j] = rand.nextInt(9);
+          }
+      }
+   }
+   
+   public Matrix transpose() {
+      Matrix matrix = new Matrix(_matrix[0].length, _matrix.length);
+      for (int i = 0; i < _matrix.length; i++) {
+          for (int j = 0; j < _matrix[i].length; j++) {
+             matrix._matrix[j][i] = _matrix[i][j];
+          }
+      }
+      return matrix;
+   }
+
+    public static void main(String[] args) {
+      Matrix m = new Matrix(3, 3);
+      m.fillRandom();
+      m.print();
+      System.out.println("");
+      Matrix transpose = m.transpose();
+      transpose.print();
+    }   
+}

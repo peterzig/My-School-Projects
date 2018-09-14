@@ -1,0 +1,223 @@
+// Zegar analogowy. GR3.
+// {PP} 
+//#pragma warning( disable : 4244 )
+#include <windows.h>
+#include <cmath>
+
+#define ID_TIMER 10
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+POINT ObliczKordyCzasu(UINT czas, bool CzyGodzina = false)
+{
+	POINT tmp = { 0 };
+
+	if (CzyGodzina)
+	{
+		if (czas>12) czas = czas % 12;
+		czas *= 30;
+		tmp.x = 120 * sin(czas*3.14 / 180); // po to by wskGodziny byla krotsza 
+		tmp.y = 120 * cos(czas*3.14 / 180);
+		return tmp;
+	}
+	else czas *= 6;
+
+	tmp.x = 160 * sin(czas*3.14 / 180);
+	tmp.y = 160 * cos(czas*3.14 / 180);
+
+	return tmp;
+};
+
+void RysujWskazowe(HDC hDC, HPEN &pen, POINT koniec)
+{
+	POINT krecha[2] = { { 0,0 } ,{ koniec.x,koniec.y } };
+	SelectObject(hDC, pen);
+	Polyline(hDC, krecha, 2);
+};
+
+void WyswietlDzienTygodnia(HDC hDC, SYSTEMTIME &sys)
+{
+	//RECT rData = {-100,-60,100,-100};
+	RECT rData = { -200,190,-50,150 };
+	wchar_t temp[60];
+	wchar_t pomocnicza[20];
+
+	switch (sys.wDayOfWeek)
+	{
+	case 0: wsprintf(pomocnicza, TEXT("Niedziela"), 0); break;
+	case 1: wsprintf(pomocnicza, TEXT("Poniedziałek"), 0); break;
+	case 2: wsprintf(pomocnicza, TEXT("Wtorek"), 0); break;
+	case 3: wsprintf(pomocnicza, TEXT("Środa"), 0); break;
+	case 4: wsprintf(pomocnicza, TEXT("Czwartek"), 0); break;
+	case 5: wsprintf(pomocnicza, TEXT("Piątek"), 0); break;
+	case 6: wsprintf(pomocnicza, TEXT("Sobota"), 0); break;
+	}
+	wsprintf(temp, TEXT("%s, %d.%d.%d"), pomocnicza, sys.wDay, sys.wMonth, sys.wYear);
+	SetTextColor(hDC, RGB(128, 0, 0));
+	DrawText(hDC, temp, -1, &rData, 0);
+};
+
+void UstawRectTekstu(const UINT Godzina, RECT &rect)
+{
+	UINT czas = Godzina * 30;
+
+	switch (Godzina)
+	{
+	case 1:	case 2:	case 10: case 11:
+		rect.left = 180 * sin(czas*3.14 / 180);
+		rect.top = 180 * cos(czas*3.14 / 180);
+		rect.right = 150 * sin(czas*3.14 / 180);
+		rect.bottom = 150 * cos(czas*3.14 / 180);
+		break;
+	case 4: case 5: case 7: case 8:
+		rect.left = 150 * sin(czas*3.14 / 180);
+		rect.top = 150 * cos(czas*3.14 / 180);
+		rect.right = 180 * sin(czas*3.14 / 180);
+		rect.bottom = 180 * cos(czas*3.14 / 180);
+		break;
+	case 3: case 9:
+		rect.left = 150 * sin(czas*3.14 / 180);
+		rect.top = 5;
+		rect.right = 180 * sin(czas*3.14 / 180);
+		rect.bottom = -15;
+		break;
+	case 6:
+		rect.left = 5;
+		rect.top = 150 * cos(czas*3.14 / 180);
+		rect.right = -5;
+		rect.bottom = 180 * cos(czas*3.14 / 180);
+		break;
+	case 12:
+		rect.left = 10;
+		rect.top = 175 * cos(czas*3.14 / 180);
+		rect.right = -6;
+		rect.bottom = 150 * cos(czas*3.14 / 180);
+		break;
+	};
+
+};
+
+void Rysuj(HWND hWnd)
+{
+	SYSTEMTIME sys;
+	RECT rect = { 0 }, rTekstu = { 0 };
+	HDC hDC;
+	HPEN hpGodz = 0, hpMin = 0, hpSec = 0;
+	PAINTSTRUCT pst = { 0 };
+	wchar_t tmp[60];
+
+	GetClientRect(hWnd, &rect);
+	hpGodz = CreatePen(PS_SOLID, 3, RGB(0, 0, 0)); // kolory wskazowek
+	hpMin = CreatePen(PS_SOLID, 2, RGB(0, 0, 0)); // kolory wskazowek
+	hpSec = CreatePen(PS_SOLID, 1, RGB(0, 0, 0)); // kolory wskazowek
+
+	hDC = BeginPaint(hWnd, &pst);
+
+	SetMapMode(hDC, MM_ISOTROPIC);
+	SetWindowExtEx(hDC, 400, 400, NULL);
+	SetViewportExtEx(hDC, rect.right, -rect.bottom, NULL);
+	SetViewportOrgEx(hDC, rect.right / 2, rect.bottom / 2, NULL);
+
+	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
+	SelectObject(hDC, GetStockObject(BLACK_PEN));
+
+	//POINT b; 
+	Ellipse(hDC, -4, 4, 4, -4); // srodek tarczy 
+	for (double i = 0; i<360; i += 6) // sekundy 
+		SetPixel(hDC, 180 * sin(i*3.14 / 180), 180 * cos(i*3.14 / 180), RGB(255, 255, 255));
+
+	for (double i = 0; i<360; i += 30) // minuty/godziny
+		Ellipse(hDC, 180 * sin(i*3.14 / 180) - 2, 180 * cos(i*3.14 / 180) - 2,
+			180 * sin(i*3.14 / 180) + 2, 180 * cos(i*3.14 / 180) + 2);
+
+	for (double i = 0; i<360; i += 90) // zaznaczenie glownych godzin, 12/3/6/9
+		Rectangle(hDC, 180 * sin(i*3.14 / 180) - 3, 180 * cos(i*3.14 / 180) - 3,
+			180 * sin(i*3.14 / 180) + 2, 180 * cos(i*3.14 / 180) + 2);
+
+	GetLocalTime(&sys);
+	MoveToEx(hDC, 0, 0, NULL);
+	// wskazowki 
+	RysujWskazowe(hDC, hpGodz, ObliczKordyCzasu(sys.wHour, true));
+	RysujWskazowe(hDC, hpMin, ObliczKordyCzasu(sys.wMinute));
+	RysujWskazowe(hDC, hpSec, ObliczKordyCzasu(sys.wSecond));
+
+	SetBkMode(hDC, TRANSPARENT);
+	SetTextColor(hDC, RGB(120, 10, 15));
+	for (int i = 1; i<13; ++i) // cyfry pelnych godzin 
+	{
+		wsprintf(tmp, TEXT("%d "), i);
+		UstawRectTekstu(i, rTekstu);
+		DrawText(hDC, tmp, -1, &rTekstu, DT_CENTER);
+	}
+	WyswietlDzienTygodnia(hDC, sys);
+
+	//SelectObject(hDC, GetStockObject(BLACK_PEN));
+	DeleteObject(hpMin);
+	DeleteObject(hpSec);
+	DeleteObject(hpGodz);
+	EndPaint(hWnd, &pst);
+};
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nShowCmd)
+{
+	WNDCLASSEX ex;
+
+	ex.cbClsExtra = 0;
+	ex.cbSize = sizeof(WNDCLASSEX);
+	ex.cbWndExtra = 0;
+	ex.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); // kolor tla
+	ex.hCursor = 0;
+	ex.hIcon = 0;
+	ex.hIconSm = 0;
+	ex.hInstance = GetModuleHandle(NULL);
+	ex.lpfnWndProc = WndProc;
+	ex.lpszClassName = TEXT("glowne");
+	ex.lpszMenuName = 0;
+	ex.style = CS_HREDRAW | CS_VREDRAW;
+
+	if (!RegisterClassEx(&ex)) return 0;
+
+	HWND Handle = CreateWindowEx(0, TEXT("glowne"), TEXT("Zegar Analogowy"),
+		WS_OVERLAPPEDWINDOW,
+		50, 50, 600, 500,
+		0, 0, hInstance, 0);
+
+	ShowWindow(Handle, SW_NORMAL);
+	UpdateWindow(Handle);
+
+	if (!Handle) return 0;
+
+	MSG msg;
+	while (GetMessage(&msg, 0, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	UnregisterClass(TEXT("glowne"), hInstance);
+	return 0;
+};
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+	case WM_CREATE:
+		SetTimer(hWnd, ID_TIMER, 1000, NULL);
+		break;
+	case WM_PAINT:
+		Rysuj(hWnd);
+		break;
+	case WM_DESTROY:
+		KillTimer(hWnd, ID_TIMER);
+		PostQuitMessage(0);
+		break;
+	case WM_TIMER:
+		InvalidateRect(hWnd, 0, true);
+		UpdateWindow(hWnd);
+		break;
+	default:
+		return DefWindowProc(hWnd, msg, wParam, lParam);
+	};
+	return DefWindowProc(hWnd, msg, wParam, lParam);
+};

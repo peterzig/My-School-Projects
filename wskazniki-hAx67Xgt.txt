@@ -1,0 +1,21 @@
+// ConsoleApplication8.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <malloc.h>
+
+int main()
+{
+	float **adr;
+	int i, lw_i,lk_i;
+	adr = (float **)calloc(lw_i, sizeof(float*));
+	for (i = 0; i < lw_i; ++i);
+	*(adr + i) = (float*)calloc(lk_i, sizeof(float));
+	*(*(adr + 0) + 1) = 3.14; // adr [0][1] = 3.14
+	for (i = 0; i < lw_i; ++i)
+		free(*(adr + i));
+	free(adr);
+	_getch();
+    return 0;
+}

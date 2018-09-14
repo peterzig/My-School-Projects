@@ -1,0 +1,99 @@
+#include "stdafx.h"
+#include <iostream>
+#include <conio.h>
+
+struct Kolejka
+{
+	float data;
+	Kolejka *next;
+};
+
+void Dodaj(Kolejka **q, float wartosc)
+{
+	Kolejka *nq = (Kolejka*)malloc(sizeof(Kolejka));
+
+	if (nq->next != NULL)
+	{
+		nq->data = wartosc;
+		nq->next = 0;
+
+		if (*q != NULL)
+		{
+			Kolejka *p = *q;
+			while (p->next != 0) p = p->next;
+			p->next = nq;
+		}
+		else
+		{
+			*q = nq;
+		}
+	}
+}
+
+int Rozmiar(Kolejka *q)
+{
+	if (q != NULL)
+	{
+		int rozmiar = 0;
+		Kolejka *p = q;
+		while (p != 0)
+		{
+			p = p->next;
+			++rozmiar;
+		}
+		return rozmiar;
+	}
+	return 0;
+}
+
+double Usun(Kolejka **q)
+{
+	if (*q)
+	{
+		Kolejka *nq = *q;
+		*q = (*q)->next;
+		double v = nq->data;
+		return v;
+	}
+}
+
+bool Pusta(Kolejka *q)
+{
+	if (q == NULL)
+		return true;
+	else
+		return false;
+}
+
+float Pobierz(Kolejka ** q)
+{
+	if (q != 0)
+	{
+		Kolejka *op = *q;
+		*q = (*q)->next;
+
+		float wartosc = op->data;
+		free(op);
+		return wartosc;
+	}
+	return 0;
+}
+
+int main()
+{
+	Kolejka *q = 0;
+	printf("Elementy kolejki: ");
+		for(int i = 0; i < 10; i++)
+		{
+			Dodaj(&q, 1.1*(i + 1));
+			printf("\n%.2f", 1.1*(i + 1));
+		}
+		printf("\nDlugosc kolejki: %d", Rozmiar(q));
+	while (q) {
+		printf("\nUsuwam element...");
+		Usun(&q);
+		printf("\nDlugosc kolejki: %d", Rozmiar(q));
+	}
+	_getch();
+	return 0;
+}

@@ -1,0 +1,93 @@
+// ConsoleApplication3.cpp : Defines the entry point for the console application.
+//
+#define use_CRT_SECURE_NO_WARNINGS // to samo w Debug --> [nazwa pliku] Properties --> C/C++ --> Preprocessor Definitions : _CRT_SECURE_NO_WARNINGS
+#include "stdafx.h"
+#include <conio.h>
+#include <iostream>
+#include <malloc.h>
+#include <cstring>
+
+class String
+{
+public:
+	String(char*);
+	String(const String &);
+
+	String& operator = (const String &);
+	String& operator + (const String &);
+
+	char* Txt() const;
+
+	char & operator [] (int t);
+
+private:
+	char* napis;
+};
+
+
+String::String(char* str)
+{
+	this->napis = (char*)malloc(sizeof(char) * strlen(str) + 1);
+	strcpy(this->napis, str);
+}
+
+String::String(const String &str)
+{
+	this->napis = (char*)malloc(sizeof(char) * strlen(str.napis) + 1);
+	strcpy(this->napis, str.napis);
+}
+
+String& String::operator = (const String &str)
+{
+	this->napis = (char*)malloc(sizeof(char) * strlen(str.napis) + 1);
+	strcpy(this->napis, str.napis);
+	return *this;
+}
+
+String& String::operator + (const String &str)
+{
+	this->napis = (char*)realloc(this->napis, sizeof(char) * (strlen(this->napis) + strlen(str.napis)) + 1);
+	strcat(this->napis, str.napis);
+
+	return *this;
+}
+
+char & String::operator[](int t)
+{
+	return this->napis[t];
+}
+
+char* String::Txt() const
+{
+	return this->napis;
+}
+
+std::ostream& operator << (std::ostream &s, const String &str)
+{
+	return s << str.Txt();
+}
+
+int main()
+{
+	String str("Napis 1");
+	String str2(" Napis 2");
+
+	printf("%s\n", str.Txt());
+
+	str = str2;
+
+	printf("%s\n", str.Txt());
+
+	String str3(" Napis 3");
+
+	str = str2 + str3;
+
+	printf("%s\n", str.Txt());
+
+	std::cout << str << std::endl; //przeciazanie << coutem
+
+	printf("%c\n", str[3]); //wypisuje trzeci indeks (czwarty znak) z tablicy str
+
+	_getch();
+	return 0;
+}

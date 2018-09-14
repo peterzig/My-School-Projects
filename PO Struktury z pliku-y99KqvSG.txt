@@ -1,0 +1,56 @@
+// struktury.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include "conio.h"
+#include <iostream>
+
+struct Samochod
+{
+	char marka[20];
+	char kolor[20];
+	int rocznik;
+};
+
+using namespace std;
+
+int main()
+{
+	Samochod *sam = new Samochod[3], *buf = new Samochod[3];
+	for (int i = 0; i < 3; i++)
+	{
+		cout << endl << "Marka: ";
+		cin.get(sam[i].marka, 20);
+		cout << "Kolor: ";
+		cin >> sam[i].kolor;
+		cout << "Rocznik: ";
+		cin >> sam[i].rocznik;
+		cin.get();
+	}
+
+	FILE *file;
+	file = fopen("plik.txt", "wb");
+	if (file)
+	{
+		fwrite(sam, sizeof(Samochod), 3, file);
+	}
+	fclose(file);
+
+	file = fopen("plik.txt", "rb");
+	if (file)
+	{
+		fread(buf, sizeof(Samochod), 3, file);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		cout << endl << "Marka: " << buf[i].marka << endl;
+		cout << "Kolor: " << buf[i].kolor << endl;
+		cout << "Kolor: " << buf[i].rocznik;
+	}
+
+	delete(sam);
+	delete(buf);
+	_getch();
+	return 0;
+}

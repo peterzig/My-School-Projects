@@ -1,0 +1,348 @@
+#include <windows.h>
+#include <deque>
+#include <time.h>
+
+#define SCREEN_WIDTH 1000
+#define SCREEN_HEIGHT 800
+#define TIMER_ID1 1
+#define TIMER_ID2 2
+#define BULLET_SIZE 6
+#define EXPOLE_SQUARE_SIZE 20
+
+TCHAR className[] = TEXT("Class");
+TCHAR appName[] = TEXT("[PIU] Statki");
+
+int playerX = 100;
+int playerY = 100;
+UINT playerSizeX = 63;
+UINT playerSizeY = 107;
+
+HWND hwnd;
+MSG msg;
+
+struct Container {
+	float x, y;
+	float xVel, yVel;
+};
+
+std::deque<Container> bullets;
+std::deque<Container> explode;
+
+Container enemy;
+
+HBITMAP CreateBitmapMask(HBITMAP hbmColour, COLORREF crTransparent)
+{
+	HDC hdcMem, hdcMem2;
+	HBITMAP hbmMask, hbmOld, hbmOld2;
+	BITMAP bm;
+
+	GetObject(hbmColour, sizeof(BITMAP), &bm);
+	hbmMask = CreateBitmap(bm.bmWidth, bm.bmHeight, 1, 1, NULL);
+
+	hdcMem = CreateCompatibleDC(NULL);
+	hdcMem2 = CreateCompatibleDC(NULL);
+
+	hbmOld = (HBITMAP)SelectObject(hdcMem, hbmColour);
+	hbmOld2 = (HBITMAP)SelectObject(hdcMem2, hbmMask);
+
+	SetBkColor(hdcMem, crTransparent);
+
+	BitBlt(hdcMem2, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
+	BitBlt(hdcMem, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem2, 0, 0, SRCINVERT);
+
+	SelectObject(hdcMem, hbmOld);
+	SelectObject(hdcMem2, hbmOld2);
+	DeleteDC(hdcMem);
+	DeleteDC(hdcMem2);
+
+	return hbmMask;
+}
+
+void addBullet() {
+	Container container;
+	container.x = playerX + (playerSizeX / 2) + (BULLET_SIZE / 2);
+	container.y = playerY;
+	container.xVel = 0/*2 - static_cast <float> (rand()) / static_cast <float> (RAND_MAX / 4)*/;
+	container.yVel = 5;
+
+	bullets.push_back(container);
+}
+
+void initExplode() {
+	size_t random = (rand() % 4) + 2;
+
+	for (size_t i = 0; i < random; i++) {
+		Container container;
+		container.x = enemy.x + (playerSizeX / 2);
+		container.y = enemy.y - (playerSizeY / 2);
+		container.xVel = 5 - static_cast <float> (rand()) / static_cast <float> (RAND_MAX / 10);
+		container.yVel = 5 - static_cast <float> (rand()) / static_cast <float> (RAND_MAX / 10);
+
+		explode.push_back(container);
+	}
+}
+
+int randomEnemyVelocity() {
+	return (rand() % 20) - 10;
+}
+
+bool checkCollision(Container A, Container B)
+{
+	RECT objectA, objectB;
+
+	objectA.left = A.x;
+	objectA.right = A.x + BULLET_SIZE;
+	objectA.top = A.y;
+	objectA.bottom = A.y + BULLET_SIZE;
+
+	objectB.left = B.x;
+	objectB.right = B.x + playerSizeX;
+	objectB.top = B.y;
+	objectB.bottom = B.y + playerSizeY;
+
+	if (objectA.bottom <= objectB.top)
+	{
+		return false;
+	}
+
+	if (objectA.top >= objectB.bottom)
+	{
+		return false;
+	}
+
+	if (objectA.right <= objectB.left)
+	{
+		return false;
+	}
+
+	if (objectA.left >= objectB.right)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void addEnemy(RECT clientRect) {
+	Container container;
+	container.x = rand() % (clientRect.right - playerSizeX);
+	container.y = 100;
+	container.xVel = randomEnemyVelocity();
+	container.yVel = 0;
+
+	enemy = container;
+}
+
+void enemyUpdate(RECT clientRect) {
+	enemy.x += enemy.xVel;
+
+	if (enemy.x + enemy.xVel < 0) {
+		enemy.x = enemy.xVel;
+		enemy.xVel = -enemy.xVel;
+	}
+
+	else if (enemy.x + enemy.xVel > clientRect.right - playerSizeX) {
+		enemy.x = clientRect.right - playerSizeX - enemy.xVel;
+		enemy.xVel = -enemy.xVel;
+	}
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static RECT clientRect;
+	static HBITMAP backgroundBitMap, playerBitmap, playerMask, enemyBitmap, enemyMask;
+	static PAINTSTRUCT ps;
+	static BITMAP bgInfo, playerInfo, enemyInfo;
+	static HBRUSH whiteColor;
+
+	switch (msg) {
+	case WM_CREATE: {
+		srand(time(NULL));
+		GetClientRect(hwnd, &clientRect);
+		SetTimer(hwnd, TIMER_ID1, 20, NULL);
+		SetTimer(hwnd, TIMER_ID2, 3000, NULL);
+		addEnemy(clientRect);
+
+		whiteColor = (HBRUSH)CreateSolidBrush(RGB(255, 255, 255));
+
+		backgroundBitMap = (HBITMAP)LoadImage(NULL, TEXT("C:\\Users\\zapop\\OneDrive\\Dokumenty\\Visual Studio 2015\\Projects\\[PIU] Statki\\[PIU] Statki\\background.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		playerBitmap = (HBITMAP)LoadImage(NULL, TEXT("C:\\Users\\zapop\\OneDrive\\Dokumenty\\Visual Studio 2015\\Projects\\[PIU] Statki\\[PIU] Statki\\player.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		playerMask = CreateBitmapMask(playerBitmap, RGB(0, 0, 0));
+		enemyBitmap = (HBITMAP)LoadImage(NULL, TEXT("C:\\Users\\zapop\\OneDrive\\Dokumenty\\Visual Studio 2015\\Projects\\[PIU] Statki\\[PIU] Statki\\enemy.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		enemyMask = CreateBitmapMask(enemyBitmap, RGB(0, 0, 0));
+
+		GetObject(backgroundBitMap, sizeof(bgInfo), &bgInfo);
+		GetObject(enemyBitmap, sizeof(enemyInfo), &enemyInfo);
+		GetObject(playerBitmap, sizeof(playerInfo), &playerInfo);
+
+		playerSizeX = playerInfo.bmWidth;
+		playerSizeY = playerInfo.bmHeight;
+		playerX = (clientRect.right / 2) - (playerSizeX / 2);
+		playerY = clientRect.bottom - (clientRect.bottom / 4);
+	}break;
+
+	case WM_PAINT: {
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		/////////////////////////////////////////////////////////////////////
+
+		HDC hdcNowy = CreateCompatibleDC(hdc);
+		HBITMAP hbmOld = (HBITMAP)SelectObject(hdcNowy, backgroundBitMap);
+		BitBlt(hdc, 0, 0, bgInfo.bmWidth, bgInfo.bmHeight, hdcNowy, 0, 0, SRCCOPY);
+
+		SelectObject(hdcNowy, hbmOld);
+
+		/////////////////////////////////////////////////////////////////////
+
+		SelectObject(hdc, whiteColor);
+
+		for (std::deque<Container>::iterator it = bullets.begin(); it != bullets.end(); ++it)
+			Ellipse(hdc, it->x, it->y, it->x + BULLET_SIZE, it->y + BULLET_SIZE);
+
+		/////////////////////////////////////////////////////////////////////
+
+		for (std::deque<Container>::iterator it = explode.begin(); it != explode.end(); ++it)
+			Rectangle(hdc, it->x, it->y, it->x + EXPOLE_SQUARE_SIZE, it->y + EXPOLE_SQUARE_SIZE);
+
+		/////////////////////////////////////////////////////////////////////
+
+		hbmOld = (HBITMAP)SelectObject(hdcNowy, playerMask);
+
+		BitBlt(hdc, playerX, playerY, playerSizeX, playerSizeY, hdcNowy, 0, 0, SRCAND);
+		SelectObject(hdcNowy, playerBitmap);
+		BitBlt(hdc, playerX, playerY, playerSizeX, playerSizeY, hdcNowy, 0, 0, SRCPAINT);
+
+		SelectObject(hdcNowy, hbmOld);
+
+		/////////////////////////////////////////////////////////////////////
+
+		hbmOld = (HBITMAP)SelectObject(hdcNowy, enemyMask);
+
+		BitBlt(hdc, enemy.x, enemy.y, playerSizeX, playerSizeY, hdcNowy, 0, 0, SRCAND);
+		SelectObject(hdcNowy, enemyBitmap);
+		BitBlt(hdc, enemy.x, enemy.y, playerSizeX, playerSizeY, hdcNowy, 0, 0, SRCPAINT);
+
+		SelectObject(hdcNowy, hbmOld);
+
+		DeleteDC(hdcNowy);
+		EndPaint(hwnd, &ps);
+	}break;
+
+	case WM_TIMER: {
+		switch (wParam) {
+		case TIMER_ID1: {
+			for (std::deque<Container>::iterator it = bullets.begin(); it != bullets.end(); ++it) {
+				it->y -= it->yVel;
+				it->x += it->xVel;
+
+				if (it->y < 0) {
+					bullets.erase(it);
+					break;
+				}
+			}
+
+			enemyUpdate(clientRect);
+
+			for (std::deque<Container>::iterator b = bullets.begin(); b != bullets.end(); ++b)
+				if (checkCollision(*b, enemy)) {
+					initExplode();
+					addEnemy(clientRect);
+				}
+
+			for (std::deque<Container>::iterator it = explode.begin(); it != explode.end(); ++it) {
+				it->x += it->xVel;
+				it->y += it->yVel;
+
+				if (it->x < 0 || it->x > clientRect.right || it->y < 0 || it->y > clientRect.bottom) {
+					explode.erase(it);
+					break;
+				}
+			}
+
+			InvalidateRect(hwnd, NULL, 0);
+		}break;
+
+		case TIMER_ID2:
+			enemy.xVel = randomEnemyVelocity();
+			break;
+		}
+	}break;
+
+	case WM_KEYDOWN:
+		switch ((int)wParam)
+		{
+		case VK_RIGHT:
+			if (playerX + 5 < clientRect.right - playerSizeX)
+				playerX += 5;
+			break;
+
+		case VK_LEFT:
+			if (playerX - 5 > 0)
+				playerX -= 5;
+			break;
+
+		case VK_SPACE:
+			addBullet();
+			break;
+
+		default:
+			break;
+		}
+		break;
+
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	case WM_DESTROY: {
+		KillTimer(hwnd, TIMER_ID1);
+		KillTimer(hwnd, TIMER_ID2);
+		PostQuitMessage(0);
+	}break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = className;
+	wc.lpszMenuName = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	if (RegisterClassEx(&wc) == 0) {
+		MessageBox(NULL, TEXT("Some problem with RegisterClassEx"), className, MB_OK);
+		return 1;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE, className, appName, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, hInstance, 0);
+	if (hwnd == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by hwnd"), className, MB_OK);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(className, hInstance);
+
+	return msg.wParam;
+}

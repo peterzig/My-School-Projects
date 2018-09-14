@@ -1,0 +1,242 @@
+#include <windows.h>
+#include <time.h>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+LRESULT CALLBACK WinProc(HWND, UINT, WPARAM, LPARAM);
+bool createWinClass(HINSTANCE&, TCHAR*);
+
+class CWykres
+{
+	public:
+		CWykres();
+		void paint(const HWND);
+		short int getVal() const;
+		short int getCount() const;
+
+	private:
+		void randBars();
+		short int maxval, count, minval;
+		vector<int> bars;
+};
+
+CWykres::CWykres()
+{
+	srand((unsigned int)time(NULL));
+	maxval = (rand() % 11) + 5;
+	count = (rand() % 21) + 5;
+
+	if(maxval % 2) maxval = maxval - 1;
+	bars.reserve(count);
+	randBars();
+}
+
+void CWykres::randBars()
+{
+	srand((unsigned int)time(NULL));
+	for(unsigned int i = 0; i < (unsigned int)count; i++)
+	{
+		int val = (rand() % (maxval + 1));
+		int sign = rand() % 2;
+		
+		if(sign) val = -val;
+
+		bars.push_back(val);
+	}
+}
+
+short int CWykres::getVal() const
+{
+	return maxval;
+}
+
+short int CWykres::getCount() const
+{
+	return count;
+}
+
+void CWykres::paint(const HWND hwnd)
+{
+	PAINTSTRUCT paintdata;
+	RECT window_size, window_margin;
+	POINT position;
+
+	HDC hdc = BeginPaint(hwnd, &paintdata);
+	HPEN emptyPen = (HPEN) SelectObject(hdc, GetStockObject(NULL_PEN));
+	HBRUSH emptyBrush = (HBRUSH) SelectObject(hdc, GetStockObject(NULL_BRUSH));
+
+	HPEN standardPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+	HBRUSH standardBrush = CreateSolidBrush(RGB(255, 0, 0));
+	HPEN redPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+
+	SelectObject(hdc, standardBrush);
+	SelectObject(hdc, standardPen);
+	GetClientRect(hwnd, &window_size);
+
+	// window for axis
+	window_margin = window_size;
+	window_margin.left = static_cast<LONG>(window_margin.right * 0.1);
+	window_margin.right = static_cast<LONG>(window_margin.right * 0.9);
+	window_margin.top = static_cast<LONG>(window_margin.bottom * 0.1);
+	window_margin.bottom = static_cast<LONG>(window_margin.bottom * 0.9);
+
+	// y axis
+	MoveToEx(hdc, window_margin.left, window_margin.top, &position);
+	LineTo(hdc, window_margin.left, window_margin.bottom);
+
+	// y axis triangle
+	POINT yTriangle[4];
+	yTriangle[0].x = window_margin.left - 10;
+	yTriangle[1].x = window_margin.left + 10;
+	yTriangle[0].y = yTriangle[1].y = window_margin.top;
+	yTriangle[2].x = window_margin.left;
+	yTriangle[2].y = window_margin.top - 10;
+	yTriangle[3] = yTriangle[0];
+	Polyline(hdc,  yTriangle, 4);
+
+	// x axis
+	int halftop = static_cast<int>((window_margin.bottom - window_margin.top)/2 + window_margin.top);
+	MoveToEx(hdc, window_margin.left, halftop, &position);
+	LineTo(hdc, window_margin.right, halftop);
+
+	// x axis triangle
+	POINT xTriangle[4];
+	xTriangle[0].x = xTriangle[1].x = window_margin.right;
+	xTriangle[0].y = halftop - 10;
+	xTriangle[1].y = halftop + 10;
+	xTriangle[2].x = window_margin.right + 10;
+	xTriangle[2].y = halftop;
+	xTriangle[3] = xTriangle[0];
+	Polyline(hdc,  xTriangle, 4);
+
+	// describe y axis
+	int maxval = getVal();
+	int copy = maxval + 1;
+	int spacing = (window_margin.bottom - window_margin.top) / (copy + 1);
+
+	for(unsigned int i = 1; i <= (unsigned int)copy; i++, maxval = (maxval - 2))
+ 	{
+		if(maxval == 0)
+			continue;
+
+		unsigned int top = window_margin.top + (i * spacing);
+		std::wstring s = to_wstring(maxval) + L".0";
+		TextOut(hdc, window_margin.left - 40, top - 5, s.c_str(), s.size());
+
+		MoveToEx(hdc, window_margin.left - 5, top, &position);
+		LineTo(hdc, window_margin.left + 5, top);
+	}
+
+	// describe x axis
+	maxval = getCount();
+	spacing = (window_margin.right - window_margin.left - 20) / maxval;
+	int spacingY = (window_margin.bottom - window_margin.top) / 2;
+
+	SelectObject(hdc, redPen);
+	// make rectangles
+	for(unsigned int i = 1; i <= (unsigned int)maxval; i++)
+ 	{
+		unsigned int left = window_margin.left + (i * spacing);
+		float rectSize = (float)bars[i - 1];
+		float max = (float)getVal();
+
+		if(rectSize > 0)
+		{
+			float top = (rectSize / (max + 2)) * (float)spacingY;
+			Rectangle(hdc, left - (spacing / 4), halftop - (int)top, left + (spacing / 4), halftop);
+		}
+		else
+		{
+			float top = ((-rectSize) / (max + 2)) * (float)spacingY;
+			Rectangle(hdc, left - (spacing / 4), halftop + (int)top, left + (spacing / 4), halftop);
+		}
+	}
+	SelectObject(hdc, standardPen);
+
+	// make descriptions
+	for(unsigned int i = 1; i <= (unsigned int)maxval; i++)
+ 	{
+		unsigned int left = window_margin.left + (i * spacing);
+		std::wstring s = to_wstring(i);
+
+		SetBkMode(hdc, TRANSPARENT);
+		TextOut(hdc, left - 5, halftop + 5, s.c_str(), s.size());
+
+		MoveToEx(hdc, left, halftop - 5, &position);
+		LineTo(hdc, left, halftop + 5);
+	}
+
+	SelectObject(hdc, emptyPen);
+	SelectObject(hdc, emptyBrush);
+
+	EndPaint(hwnd, &paintdata);
+	DeleteObject(standardPen);
+	DeleteObject(standardBrush);
+	DeleteObject(redPen);
+}
+
+CWykres Wykres;
+TCHAR APPName[] = TEXT("Moja aplikacja");
+TCHAR ClassName[] = TEXT("Nazwa klasy");
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+	if(!createWinClass(hInstance, ClassName)) 
+		return 0;
+
+	HWND window = CreateWindowEx(0, ClassName, APPName, WS_OVERLAPPEDWINDOW, 200, 200, 500, 400, 0, 0, 0, 0);
+	if(window) {
+		MSG msg;
+		ShowWindow(window, nShowCmd);
+
+		while(GetMessage(&msg, 0, 0, 0) > 0) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+	else MessageBox(0, TEXT("Inicjalizacja okna nie powiodła się."), APPName, MB_OK | MB_ICONERROR);
+
+	UnregisterClass(ClassName, hInstance);
+	return 0;
+}
+
+static LRESULT CALLBACK WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(msg)
+	{
+		case WM_PAINT:
+			Wykres.paint(hwnd);
+			break;
+		case WM_MOVE:
+		case WM_SIZE:
+			InvalidateRect(hwnd, 0, TRUE);
+			break;
+		case WM_CLOSE:
+			DestroyWindow(hwnd);
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam); 
+	}
+	return 0;
+}
+
+static bool createWinClass(HINSTANCE& hInstance, TCHAR* ClassName)
+{
+	WNDCLASSEX wc;
+	wc.cbClsExtra = wc.cbWndExtra = 0;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1); 
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hIconSm = wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hInstance = hInstance;
+	wc.lpfnWndProc = WinProc;
+	wc.lpszClassName = ClassName;
+	wc.lpszMenuName = 0;
+	wc.style = 0;
+	return (RegisterClassEx(&wc) != 0);
+}

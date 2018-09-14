@@ -1,0 +1,100 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+#pragma comment(lib,"ws2_32.lib")
+
+#include <winsock2.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <conio.h>
+
+using namespace std;
+class wyjatek
+{
+public:
+	wyjatek() { cout << "zgloszono sytuacje wyjatkowa\n"; }
+};
+
+class CGniazda
+{
+private:
+	WORD version;
+	WSAData wsadata;
+	int error;
+public:
+	CGniazda();
+	~CGniazda();
+};
+
+CGniazda::CGniazda()
+{
+	version = MAKEWORD(2, 2);
+	error = WSAStartup(version, &wsadata);
+	if (error != 0)
+	{
+		cout << "Blad inicjalizacji WinSock, nr bledu: " << error << endl;
+		throw wyjatek();
+	}
+	else cout << "Inicjalizacja WinSock przebiegla pomyslnie" << endl;
+}
+CGniazda::~CGniazda()
+{
+	WSACleanup();
+}
+
+class CHost
+{
+private:
+	hostent *adres;
+	char host[40];
+	sockaddr_in adresik;
+
+public:
+	CHost(const char *w);
+};
+
+CHost::CHost(const char *w)
+{
+
+	strcpy(host, w);
+	adres = gethostbyname(host);
+	adresik.sin_addr.s_addr = *((unsigned long*)adres->h_addr);
+	cout << "Adres: " << inet_ntoa(adresik.sin_addr) << endl;
+}
+
+vector <string> dane;
+int main()
+{
+	string nazwa;
+	char c;
+	try
+	{
+		CGniazda obiekt;
+
+		while (1)
+		{
+			cout << "Wpisz nazwe hosta do translacji: ";
+			getline(cin, nazwa);
+			if (nazwa.length() == 0) break;
+			CHost obiekt2(nazwa.c_str());
+
+			dane.push_back(nazwa);
+
+			for (int i = 0; i<dane.size(); i++)
+			{
+				cout << dane[i] << endl;
+			}
+
+		}
+
+	}
+	catch (...)
+	{
+		cout << "\nJakas tam obsluga wyjatku\n";
+	}
+
+	_getch();
+	return 0;
+
+}

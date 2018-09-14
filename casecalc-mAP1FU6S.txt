@@ -1,0 +1,55 @@
+// casecalc.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <math.h>
+
+
+int main()
+{
+	int a, b, n;
+	printf("Podaj pierwsza liczbe: ");
+	scanf("%d", &a);
+	printf("Podaj druga liczbe: ");
+	scanf("%d", &b);
+	printf("Podaj numer dzialania: \n");
+	printf("1.Dodawanie \n");
+	printf("2.Odejmowanie \n");
+	printf("3.Mnozenie \n");
+	printf("4.Dzielenie \n");
+	printf("5.Reszta z liczby \n");
+	scanf("%d", &n);
+	switch (n)
+	{
+		case 1: 
+			printf("Wybrano dodawanie, wynik to: %d", a + b);
+			break;
+		case 2: 
+			printf("Wybrano odejmowanie, wynik to: %d", a - b);
+			break;
+		case 3: 
+			printf("Wybrano mnozenie, wynik to: %d", a * b);
+			break;
+		case 4: 
+			if (b == 0)
+			{
+				printf("Nie dzielimy przez zero!"); 
+				break;
+			}
+			else
+					printf("Wybrano dzielenie, wynik to: %d", a / b);
+			
+			break;
+		case 5: 
+			if (b == 0)
+			{
+				printf("Nie dzielimy przez zero!");
+			}
+			else
+					printf("Reszta z dzielenia %d przez %d wynosi: %d", a, b, a % b);
+			break;
+			}
+	_getch();
+    return 0;
+}

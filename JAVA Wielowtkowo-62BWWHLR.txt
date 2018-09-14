@@ -1,0 +1,38 @@
+        /* package whatever; // don't place package name! */
+     
+        import java.util.*;
+        import java.lang.*;
+        import java.io.*;
+     
+        class Watek extends Thread 
+        {
+        	String wysun = "";
+        	public Watek(String str, int numer) 
+        	{
+        		super(str);
+        	// Ustawienie wcięcia z jakim będzie wyświetlana nazwa Watku
+        		for (int i = 1; i < numer; i++) wysun = wysun + "\t";
+        	}
+        	public void run() 
+        	{
+        		for (int i = 0; i < 4; i++) 
+        		{
+        			System.out.println(wysun + i + " " + getName());
+        			try 
+        			{ sleep( (int)(Math.random() * 1000) ); }
+        			catch ( InterruptedException e ) 
+        			{ e.printStackTrace(); }      }
+        		System.out.println(wysun + getName()+ " koniec" );
+        	}
+        }
+        class Ideone
+        {
+        	public static void main (String[] args) throws java.lang.Exception
+        	{
+     
+        		new Watek("Janek",1).start();
+        		new Watek("Magda",2).start();
+        		new Watek("Wacek",3).start();
+        		new Watek("Ola",4).start();
+    		 }
+        }

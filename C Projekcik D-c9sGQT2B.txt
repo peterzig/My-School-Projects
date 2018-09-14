@@ -1,0 +1,88 @@
+#include <iostream>
+#include <conio.h>
+#include <time.h>
+
+using namespace std;
+
+void transpozycja() {
+	srand(time(NULL)); //start generowania liczb pseudolosowych
+	float macierz[4][4];
+	int i, j;
+	cout << "\nWpisz liczby: \n " << endl;
+
+	for (i = 0; i<4; i++) //petla wykonujaca sie 4 razy dla i-tego wiersza macierzy
+	{
+		for (j = 0; j<4; j++) //petla wykonujaca sie 4 razy dla j-tej kolumny macierzy
+		{
+			macierz[i][j] = 1 + rand() % 9; //losowanie elementow macierzy w zakresie od 1 do 9
+		}
+	}
+
+	cout << "\nLosowo wygenerowana macierz 4x4: \n";
+	for (i = 0; i<4; i++)
+	{
+		cout << "\n\n";
+		for (j = 0; j<4; j++)
+			cout << "    " << macierz[i][j];
+	}
+	cout << "\n\n";
+
+
+	float transposed[4][4]; //dodatkowa zmienna przechowujaca macierz transponowana
+	for (i = 0; i<4; i++)
+	{
+		for (j = 0; j<4; j++)
+			transposed[j][i] = macierz[i][j]; //w tym miejscu nastepuje transpozycja czyli zamiana wierszy i kolumn macierzy
+	}
+	cout << "\nMacierz po transpozycji: \n";
+	for (i = 0; i<4; i++) {
+		cout << "\n\n";
+		for (j = 0; j<4; j++)
+			cout << "    " << transposed[i][j];
+	}
+}
+
+void random() {
+	srand(time(NULL)); //start generowania liczb pseudolosowych
+	int n;
+	cout << "\nPodaj ilosc liczb calkowitch dodatnich jakie ma wygenerowac program: ";
+	cin >> n;
+	cout << "Twoje liczby calkowite dodatnie to: \n";
+	for (int i = 0; i < n; i++) { //pętla wykonująca się od 0 do ilosci zadanej przez uzytkownika
+		int r = rand() % RAND_MAX; // losowanie liczb z zakresu od 0 do 32767
+		printf("%d\n", r);
+	}
+}
+
+
+int main()
+{
+	int n;
+	cout << "================";
+	cout << "\n|Menu glowne:  |";
+	cout << "\n====================================================";
+	cout << "\n|                                                  |";
+	cout << "\n|1.Losowanie i transpozycja macierzy 4x4           |";
+	cout << "\n|2.Generowanie calkowitych liczb losowych dodatnich|";
+	cout << "\n|                                                  |";
+	cout << "\n====================================================";
+	cout << "\n\nWybierz numer: ";
+	cin >> n;
+	switch (n)
+	{
+	case 1:
+		transpozycja();
+		printf("\n\nNacisnij dowolny przycisk aby zakonczyc program");
+		break;
+	case 2:
+		random();
+		printf("\n\nNacisnij dowolny przycisk aby zakonczyc program");
+		break;
+	default:
+		cout << "Podana cyfra jest nieprawidlowa, sprobuj jeszcze raz.\n\n";
+		main();
+		break;
+	}
+	_getch();
+	return 0;
+}

@@ -1,0 +1,211 @@
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+#define SQUARE_SIZE 50
+#define COLOURS 40
+
+#include <Windows.h>
+#include <time.h>
+#include <deque>
+#include <tchar.h>
+
+using namespace std;
+
+MSG msg;
+TCHAR className[] = TEXT("Tak");
+HWND hwnd;
+RECT clientRect;
+
+struct Container {
+	int rotate;
+	int angle;
+	RECT rect;
+	COLORREF brushColor;
+	COLORREF penColor;
+};
+
+deque<Container> starContainer;
+
+void initStars() {
+	int amount = (rand() % 31) + 20;
+
+	for (UINT i = 0; i < amount; i++) {
+		int size = (rand() % 50) + 20;
+		int x = (rand() % (clientRect.right - clientRect.left - size)) + clientRect.left;
+		int y = (rand() % (clientRect.bottom - clientRect.top - size)) + clientRect.top;
+
+		Container container;
+		container.angle = (rand() % 21) - 10;
+		container.rotate = rand() % 91;
+		container.rect.left = x;
+		container.rect.top = y;
+		container.rect.right = x + size;
+		container.rect.bottom = y + size;
+		container.brushColor = RGB(rand() % 255, rand() % 255, rand() % 255);
+		container.penColor = RGB(rand() % 255, rand() % 255, rand() % 255);
+
+		starContainer.push_back(container);
+	}
+}
+
+void drawRectangle(const HDC hdc, const RECT rect, const float rotate) {
+	const float x = rect.left;
+	const float y = rect.top;
+	const float sizeX = rect.right - rect.left;
+	const float sizeY = rect.bottom - rect.top;
+
+	const float xPos = x + (sizeX / 2);
+	const float yPos = y + (sizeY / 2);
+
+	const float rad = (float)rotate / (360.0f / (2 * 3.1416f));
+
+	POINT point[8];
+
+	point[0].x = cos(rad) * (x - xPos) - sin(rad) * (y - yPos) + xPos;
+	point[0].y = sin(rad) * (x - xPos) + cos(rad) * (y - yPos) + yPos;
+
+	point[1].x = cos(rad) * ((x - xPos) + (sizeX / 2)) - sin(rad) * ((y - yPos) + (sizeY / 3)) + xPos;
+	point[1].y = sin(rad) * ((x - xPos) + (sizeX / 2)) + cos(rad) * ((y - yPos) + (sizeY / 3)) + yPos;
+
+	point[2].x = cos(rad) * ((x - xPos) + sizeX) - sin(rad) * (y - yPos) + xPos;
+	point[2].y = sin(rad) * ((x - xPos) + sizeX) + cos(rad) * (y - yPos) + yPos;
+
+	point[3].x = cos(rad) * ((x - xPos) + sizeX - (sizeX / 3)) - sin(rad) * ((y - yPos) + (sizeY / 2)) + xPos;
+	point[3].y = sin(rad) * ((x - xPos) + sizeX - (sizeX / 3)) + cos(rad) * ((y - yPos) + (sizeY / 2)) + yPos;
+
+	point[4].x = cos(rad) * ((x - xPos) + sizeX) - sin(rad) * ((y - yPos) + sizeY) + xPos;
+	point[4].y = sin(rad) * ((x - xPos) + sizeX) + cos(rad) * ((y - yPos) + sizeY) + yPos;
+
+	point[5].x = cos(rad) * ((x - xPos) + (sizeX / 2)) - sin(rad) * ((y - yPos) + sizeY - (sizeY / 3)) + xPos;
+	point[5].y = sin(rad) * ((x - xPos) + (sizeX / 2)) + cos(rad) * ((y - yPos) + sizeY - (sizeY / 3)) + yPos;
+
+	point[6].x = cos(rad) * (x - xPos) - sin(rad) * ((y - yPos) + sizeY) + xPos;
+	point[6].y = sin(rad) * (x - xPos) + cos(rad) * ((y - yPos) + sizeY) + yPos;
+
+	point[7].x = cos(rad) * ((x - xPos) + (sizeX / 3)) - sin(rad) * ((y - yPos) + (sizeY / 2)) + xPos;
+	point[7].y = sin(rad) * ((x - xPos) + (sizeX / 3)) + cos(rad) * ((y - yPos) + (sizeY / 2)) + yPos;
+
+	Polygon(hdc, point, 8);
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static PAINTSTRUCT ps;
+
+	switch (msg)
+	{
+	case WM_CREATE:
+		SetTimer(hwnd, 1, 100, 0);
+		GetClientRect(hwnd, &clientRect);
+		initStars();
+		break;
+
+	case WM_PAINT: {
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		HBRUSH brushBox, brush;
+		HPEN penBox, pen;
+
+		for (deque<Container>::iterator it = starContainer.begin(); it != starContainer.end(); ++it) {
+			brush = CreateSolidBrush(it->brushColor);
+			brushBox = (HBRUSH)SelectObject(hdc, brush);
+
+			pen = CreatePen(PS_SOLID, 3, it->penColor);
+			penBox = (HPEN)SelectObject(hdc, pen);
+
+			drawRectangle(hdc, it->rect, it->rotate);
+			SelectObject(hdc, brushBox);
+			SelectObject(hdc, penBox);
+
+			DeleteObject(brushBox);
+			DeleteObject(brush);
+			DeleteObject(penBox);
+			DeleteObject(pen);
+		}
+
+		EndPaint(hwnd, &ps);
+	}break;
+
+	case WM_TIMER:
+		for (deque<Container>::iterator it = starContainer.begin(); it != starContainer.end(); ++it) {
+			int moveX = (rand() % 11) - 5;
+			int moveY = (rand() % 11) - 5;
+
+			if (it->rect.left + moveX < clientRect.left || it->rect.right + moveX > clientRect.right)
+				moveX = -moveX;
+
+			if (it->rect.top + moveY < clientRect.top || it->rect.bottom + moveY < clientRect.bottom)
+				moveY = -moveY;
+
+			it->rect.left += moveX;
+			it->rect.right += moveX;
+
+			it->rect.top -= moveY;
+			it->rect.bottom -= moveY;
+
+			it->rotate += it->angle;
+
+			if (it->rotate > 360) it->rotate = 0;
+			else if (it->rotate < -360) it->rotate = 0;
+		}
+
+		InvalidateRect(hwnd, NULL, 1);
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = className;
+	wc.lpszMenuName = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	if (!RegisterClassEx(&wc))
+	{
+		MessageBox(NULL, TEXT("Nie udało się zarejestrować klasy okna!"), TEXT("Error 404"), MB_OK | MB_ICONERROR);
+		return 1;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE,
+			className, TEXT("Okno"), WS_OVERLAPPEDWINDOW,
+				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+				NULL, NULL,  hInstance, NULL);
+	if (hwnd == NULL) {
+		MessageBox(NULL, TEXT("Nie udało się utworzyć okna !"), TEXT("CreateWindowEx"), MB_OK | MB_ICONERROR);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(className, hInstance);
+
+	return msg.wParam;
+}

@@ -1,0 +1,85 @@
+#include "stdafx.h"
+#include <winsock2.h>
+#include <conio.h>
+
+#pragma comment(lib, "ws2_32.lib")
+
+#define DEFAULT_BUFLEN 1024
+
+bool close = false;
+
+DWORD WINAPI MyThread( LPVOID lpParam ) 
+{ 
+	SOCKET *socket =(SOCKET*)lpParam;
+	char buff[DEFAULT_BUFLEN];
+	while(recv(*socket, buff, DEFAULT_BUFLEN, 0) > 0)
+	{
+		printf("%s\n", buff);
+	}	
+	close = true;
+    return 0; 
+} 
+
+int _tmain(int argc, _TCHAR* argv[])
+{	
+    WSADATA wsaData;
+    int iResult;
+    SOCKET Socket;
+    struct sockaddr_in clientService;     
+    char buff[DEFAULT_BUFLEN];
+    int bufflen = DEFAULT_BUFLEN;
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != NO_ERROR)
+	{
+		printf("WSAStartup failed: %d\n", iResult);
+		_getch();
+		return 1;
+	}
+    Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	
+	//u_long iMode = 1;
+	//ioctlsocket(Socket, FIONBIO, &iMode);
+	
+    if (Socket == INVALID_SOCKET)
+	{
+        printf("Error at socket(): %ld\n", WSAGetLastError() );
+        WSACleanup();
+		_getch();
+        return 1;
+    }
+    clientService.sin_family = AF_INET;
+//	clientService.sin_addr.s_addr = inet_addr( "157.158.41.86" );
+//    clientService.sin_addr.s_addr = inet_addr( "157.158.41.18" );
+	clientService.sin_addr.s_addr = inet_addr( "127.0.0.1" );
+	printf("Connect to: %s\n", inet_ntoa(clientService.sin_addr));
+
+    clientService.sin_port = htons( 27015 );
+    iResult = connect( Socket, (SOCKADDR*) &clientService, sizeof(clientService) );
+    if ( iResult == SOCKET_ERROR)
+	{
+        closesocket (Socket);
+        printf("Unable to connect to server: %ld\n", WSAGetLastError());
+        WSACleanup();
+		_getch();
+        return 1;
+    }	
+	DWORD ThreadId;
+	CloseHandle(CreateThread( NULL, 0, MyThread, (void*)&Socket, 0, &ThreadId));
+	while(true)
+	{		
+		gets(buff);
+		if(strcmp(buff, "exit")==0 || close) break;
+		send(Socket, buff, strlen(buff) + 1, 0);		
+	}		
+	iResult = shutdown(Socket, SD_SEND);
+    if (iResult == SOCKET_ERROR) {
+        printf("shutdown failed: %d\n", WSAGetLastError());
+        closesocket(Socket);
+        WSACleanup();
+		_getch();    
+		return 1;
+    }
+	closesocket(Socket);
+    WSACleanup();		
+	return 0;
+}

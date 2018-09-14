@@ -1,0 +1,191 @@
+// Sortowania z pliku.cpp : Defines the entry point for the console application.
+//
+ 
+#include "stdafx.h"
+#include <conio.h>
+#include <cstring>
+struct czlowiek{
+    char imie[256];
+    char nazwisko[256];
+    int id;
+};
+ 
+void wypisz_tab(czlowiek *tab,int lel){
+    for(int i=0;i<lel;i++){
+    printf("%s %s %d\n",tab[i].imie,tab[i].nazwisko,tab[i].id);
+    }
+ 
+}
+ 
+void sortowanie_babelkowe_id(czlowiek *tab, int n)
+{
+    for (int i=1; i<n; i++)
+    {
+        for (int j=n-1; j>=1; j--)
+        {
+            if (tab[j].id<tab[j-1].id)
+            {
+                int buforid;
+                char bufor_imie[256];
+                char bufor_nazwisko[256];
+                buforid=tab[j-1].id;
+                tab[j-1].id=tab[j].id;
+                tab[j].id=buforid;
+ 
+                strcpy(bufor_imie,tab[j-1].imie);
+                strcpy(tab[j-1].imie,tab[j].imie);
+                strcpy(tab[j].imie,bufor_imie);
+ 
+                strcpy(bufor_nazwisko,tab[j-1].nazwisko);
+                strcpy(tab[j-1].nazwisko,tab[j].nazwisko);
+                strcpy(tab[j].nazwisko,bufor_nazwisko);
+            }
+        }
+    }
+}
+ 
+void sortowanie_babelkowe_imie(czlowiek *tab, int n){
+    for (int i=1; i<n; i++)
+    {
+        for (int j=n-1; j>=1; j--)
+        {
+            if (strcoll(tab[j].imie,tab[j-1].imie)<0)
+            {
+                int buforid;
+                char bufor_imie[256];
+                char bufor_nazwisko[256];
+                buforid=tab[j-1].id;
+                tab[j-1].id=tab[j].id;
+                tab[j].id=buforid;
+ 
+                strcpy(bufor_imie,tab[j-1].imie);
+                strcpy(tab[j-1].imie,tab[j].imie);
+                strcpy(tab[j].imie,bufor_imie);
+ 
+                strcpy(bufor_nazwisko,tab[j-1].nazwisko);
+                strcpy(tab[j-1].nazwisko,tab[j].nazwisko);
+                strcpy(tab[j].nazwisko,bufor_nazwisko);
+            }
+        }
+    }
+}
+ 
+void quicksort_id(czlowiek *tablica, int lewy, int prawy)
+{
+    int v=tablica[(lewy+prawy)/2].id;
+    int i,j,x;
+    i=lewy;
+    j=prawy;
+    do{
+        while (tablica[i].id>v) i++;
+        while (tablica[j].id<v) j--;
+        if (i<=j){
+            char bufor_imie[256];
+            char bufor_nazwisko[256];
+            x=tablica[i].id;
+            tablica[i].id=tablica[j].id;
+            tablica[j].id=x;
+           
+            strcpy(bufor_imie,tablica[i].imie);
+            strcpy(tablica[i].imie,tablica[j].imie);
+            strcpy(tablica[j].imie,bufor_imie);
+           
+            strcpy(bufor_nazwisko,tablica[i].nazwisko);
+            strcpy(tablica[i].nazwisko,tablica[j].nazwisko);
+            strcpy(tablica[j].nazwisko,bufor_nazwisko);
+ 
+            i++; j--;
+        }
+    }while (i<=j);
+    if (j>lewy) quicksort_id(tablica,lewy, j);
+    if (i<prawy) quicksort_id(tablica, i, prawy);
+}
+ 
+void quicksort_imie(czlowiek *tablica, int lewy, int prawy)
+{
+    char *v=tablica[((lewy+prawy)/2)].imie;
+    int i,j,x;
+    i=lewy;
+    j=prawy;
+    do{
+        while (strcmp(tablica[i].imie,v)<0) i++;
+        while (strcmp(tablica[j].imie,v)>0) j--;
+        if (i<=j){
+            char bufor_imie[256];
+            char bufor_nazwisko[256];
+            x=tablica[i].id;
+            tablica[i].id=tablica[j].id;
+            tablica[j].id=x;
+           
+            strcpy(bufor_imie,tablica[i].imie);
+            strcpy(tablica[i].imie,tablica[j].imie);
+            strcpy(tablica[j].imie,bufor_imie);
+           
+            strcpy(bufor_nazwisko,tablica[i].nazwisko);
+            strcpy(tablica[i].nazwisko,tablica[j].nazwisko);
+            strcpy(tablica[j].nazwisko,bufor_nazwisko);
+            i++; j--;
+        }
+    }while (i<=j);
+    if (j>lewy) quicksort_id(tablica,lewy, j);
+    if (i<prawy) quicksort_id(tablica, i, prawy);
+}
+ 
+ 
+int _tmain(int argc, _TCHAR* argv[])
+{
+   
+    FILE *plik,*plik2;//zmienne plikowe
+   
+    plik=fopen("dane.txt","r");
+    if(!plik){
+    fprintf(stderr,"Blad otwarcia pliku!\n");
+    getch();
+    return 1;
+    }
+   
+    plik2=fopen("dane2.txt","w");
+    if(!plik){
+    fprintf(stderr,"Blad otwarcia pliku!\n");
+    getch();
+    return 1;
+    }
+   
+    char buff[256];
+    int licznik=0;
+   
+ 
+    for(int i=0;!feof(plik);i++){
+    fgets(buff,255,plik);
+    licznik++;
+    }
+ 
+ 
+    printf("Licznik to %d\n",licznik);
+   
+    fseek(plik,0,SEEK_SET);
+   
+    czlowiek *osoba=new czlowiek[licznik];
+   
+    for(int i=0;!feof(plik);i++){
+    fscanf(plik,"%s %s %d",&osoba[i].imie,&osoba[i].nazwisko,&osoba[i].id);
+    }
+    fseek(plik,0,SEEK_SET);
+ 
+    wypisz_tab(osoba,licznik);
+    puts("");
+   
+   
+ 
+    for(int i=0;i<licznik;i++){
+        fprintf(plik2,"%s %s %d\n",osoba[i].imie,osoba[i].nazwisko,osoba[i].id);
+    }
+   
+    delete(osoba);
+    fclose(plik);
+    fclose(plik2);
+   
+   
+    getch();
+    return 0;
+}

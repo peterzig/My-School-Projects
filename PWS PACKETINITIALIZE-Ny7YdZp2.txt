@@ -1,0 +1,96 @@
+#pragma comment(lib,"Ws2_32.lib"); 
+#include <windows.h> 
+#include <string> 
+#include <iostream> 
+
+using namespace std;
+
+struct PACKET_INITIALIZE
+{
+	PACKET_INITIALIZE(unsigned int code, int reserved1, int reserved2) :
+		Code(code),
+		Reserved1(reserved1),
+		Reserved2(reserved2) {}
+		unsigned int Code;
+		int Reserved1;
+		int Reserved2;
+};
+
+struct PACKET_TEXTFRAGMENT
+{
+	PACKET_TEXTFRAGMENT(unsigned int code, unsigned int textlen, signed int charoffset) :
+		Code(code),
+		TextLen(textlen),
+		CharOffset(charoffset) {}
+		unsigned int Code;
+		unsigned int TextLen;
+		signed int CharOffset;
+};
+
+int main()
+{
+	WSADATA info;
+	if (WSAStartup(MAKEWORD(2, 0), &info) != 0)
+	{
+		cout << "WinSock Error\n";
+	}
+
+	SOCKET gniazdo = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	sockaddr_in serwer;
+	serwer.sin_family = AF_INET;
+	serwer.sin_addr.s_addr = inet_addr("192.168.0.46");
+	serwer.sin_port = htons(5000);
+
+	connect(gniazdo, (sockaddr*)&serwer, sizeof(serwer));
+
+	//-------- cala zabawa zaczyna sie tutaj 
+	PACKET_INITIALIZE start(0x12345678, 0, 0);
+	PACKET_TEXTFRAGMENT msg(0x23456789, 0, 0);
+	string buf;
+	char odebrana[100];
+	int liczba;
+	int odebrane;
+
+	send(gniazdo, (char*)&start, sizeof(start), 0);
+	recv(gniazdo, (char*)&start, sizeof(start), 0);
+
+	if (start.Code == 1)
+	{
+		do
+		{
+			cout << "Podaj tekst do szyfrowania/deszyfrowania : ";
+			getline(cin, buf);  	 	 	
+			if (buf == "") break;
+			do
+			{
+				cout << "Wprowadz przesuniecie <-20,20> : ";
+				cin >> liczba;  	 	 	 	getchar();
+			} while ((liczba<-20) || (liczba>20));
+
+			msg.Code = 0x23456789;
+			msg.TextLen = buf.length();
+			msg.CharOffset = liczba;
+
+			send(gniazdo, (char*)&msg, sizeof(msg), 0);
+			send(gniazdo, buf.c_str(), buf.length(), 0);
+
+			recv(gniazdo, (char*)&msg, sizeof(msg), 0);
+			if (msg.Code == 1)
+			{
+				odebrane = recv(gniazdo, odebrana, buf.length(), 0);
+				odebrana[odebrane] = 0;
+				cout << "Otrzymana odpowiedz: " << odebrane << endl;
+			}
+			else cout << "Brak odpowiedzi" << endl;
+			cout << "--------------------------------------------------------------";
+		} while (true);
+	}
+	else cout << "Serwer nie wyrazil zgody na polaczenie!\n";
+
+	//-------- tutaj sie konczy, reszta to klasyk 
+	shutdown(gniazdo, 2);  	closesocket(gniazdo);
+	WSACleanup();
+
+	return 0;
+}

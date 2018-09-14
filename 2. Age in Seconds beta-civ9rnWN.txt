@@ -1,0 +1,19 @@
+#include <conio.h>
+#include <iostream>
+#include <inttypes.h>
+
+using namespace std;
+int main()
+{
+	int age, days;
+	unsigned long long sec;
+	cout << "Write your age in years: " ;
+	cin >> age;
+	days = age * 365;
+	sec = age * 31556926;
+	cout << "\nYour age in years: " << age << endl;
+	cout << "\nYour age in days: " << days << endl;
+	printf("\nYour age in seconds %llu ", sec); // Works only for 68 yrs old, older ppl need array :)
+	_getch();
+	return 0;
+}

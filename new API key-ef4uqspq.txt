@@ -1,0 +1,6 @@
+Your access token for Magic Mirror moje listy is: f5f2b0d1bb093c260c74a41d9b34b0b60ac1e00959cae0f6742b298ebaec
+ 
+Client ID: be5e74f484175fac98da
+Client Secret: 006647ab5b332ef80b872fea14b60abc513ddaf4d7a9cb4b7d4e2d38b572
+App URL: https://a.wunderlist.com/api/v1/lists
+Auth Callback URL: http://localhost:8080

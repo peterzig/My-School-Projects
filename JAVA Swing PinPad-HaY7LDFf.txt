@@ -1,0 +1,75 @@
+package pinpad;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class Pinpad extends JFrame implements ActionListener{
+    JPanel jplControlPanel = new JPanel();
+    JPanel jplLabelPanel = new JPanel();
+    JPanel jplButtonPanel = new JPanel();
+    JLabel jlbPasscode = new JLabel("Wpisz PIN:");
+    JPasswordField jpwPasscode = new JPasswordField(4);
+    JButton jbtNumber;
+    StringBuilder inputPin = new StringBuilder("");
+    
+    public Pinpad() {
+        jplLabelPanel.setLayout(new BorderLayout());
+        jplButtonPanel.setLayout(new GridLayout(4,3));
+        
+        jplLabelPanel.add(jlbPasscode, BorderLayout.CENTER);
+        jplLabelPanel.add(jpwPasscode, BorderLayout.SOUTH);
+        
+        for (int i = 1; i< 10; i++){
+            jbtNumber = new JButton(i+"");
+            jbtNumber.addActionListener(this);
+            jplButtonPanel.add(jbtNumber);
+        }
+        
+        jbtNumber = new JButton(" ");
+        jbtNumber.addActionListener(this);
+        jplButtonPanel.add(jbtNumber);
+        jbtNumber = new JButton(0+"");
+        jbtNumber.addActionListener(this);
+        jplButtonPanel.add(jbtNumber);
+        jbtNumber = new JButton("C");
+        jbtNumber.addActionListener(this);
+        jplButtonPanel.add(jbtNumber);
+        
+        jplControlPanel.setLayout(new BorderLayout());
+        jplControlPanel.add(jplLabelPanel, BorderLayout.CENTER);
+        jplControlPanel.add(jplButtonPanel, BorderLayout.SOUTH);
+        
+        add(jplControlPanel);
+        
+       /* Toolkit tk = Toolkit.getDefaultToolkit();
+        int xSize = ((int) tk.getScreenSize().getWidth()/4);
+        int ySize = ((int) tk.getScreenSize().getHeight()/4);
+*/
+        setPreferredSize(new Dimension(200, 200));
+        setVisible(true);
+        pack();
+    }
+    
+    @Override public void actionPerformed(ActionEvent e){
+        if(e.getActionCommand().equals("C")) {
+            jpwPasscode.setText("");
+            inputPin.delete(0, inputPin.length());
+            System.out.println(inputPin);
+        } 
+        
+        for (int i = 1; i< 10; ++i){
+            if(e.getActionCommand().equals(i+"")){
+                inputPin.append(i);
+                jpwPasscode.setText(inputPin.toString());
+                System.out.println(inputPin);
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        new Pinpad();
+    }
+    
+}

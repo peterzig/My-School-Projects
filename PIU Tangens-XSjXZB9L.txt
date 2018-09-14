@@ -1,0 +1,124 @@
+#include <windows.h>
+#include <string>
+#include <cmath>
+
+using std::wstring;
+
+HINSTANCE hInst;
+const wstring NazwaKlasy(L"Klasa");
+const wstring NazwaApp(L"Psinus");
+int iDiv = 2;
+float Pi = 3.14f;
+
+HPEN Pen[2];
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+static void OnWM_PAINT(HWND Wnd)
+{
+	PAINTSTRUCT PS;
+	BeginPaint(Wnd, &PS);
+
+	RECT R, E;
+	GetClientRect(Wnd, &R);
+
+	POINT Z = { 700,700 };
+	SetMapMode(PS.hdc, MM_ISOTROPIC);
+	SetWindowExtEx(PS.hdc, Z.x, Z.y, NULL);                        //zakres okna
+	SetViewportExtEx(PS.hdc, R.right, R.bottom, NULL);            //zakres ukł wsp
+	SetViewportOrgEx(PS.hdc, R.right / 2, R.bottom / 2, NULL);    //pocz ukł wsp
+	E.left = R.left + ((R.right - R.left) / 10);
+	E.right = R.right - ((R.right - R.left) / 10);
+	E.top = R.top + ((R.bottom - R.top) / 10);
+	E.bottom = R.bottom - ((R.bottom - R.top) / 10);
+
+	SelectObject(PS.hdc, Pen[0]);
+
+
+
+	//MoveToEx( PS.hdc, 0, -250, NULL );
+	MoveToEx(PS.hdc, 0, -((E.bottom - E.top) / iDiv), NULL);
+	LineTo(PS.hdc, 0, ((E.bottom - E.top) / iDiv));
+
+	MoveToEx(PS.hdc, -((E.right - E.left) / iDiv), 0, NULL);
+	LineTo(PS.hdc, (E.right - E.left) / iDiv, 0);
+
+
+	SelectObject(PS.hdc, Pen[1]);
+	float ytan;
+	float ytans;
+	for (float drzwi = -(E.right - E.left) / iDiv; drzwi <= (E.right - E.left) / iDiv; drzwi += iDiv)
+	{
+		ytan = 100 * tan((drzwi * Pi) / 180);
+		ytans = 100 * tan(((drzwi - 4) * Pi) / 180);
+		if ((ytans <= ((E.bottom - E.top) / iDiv) && ytans >= -((E.bottom - E.top) / iDiv)) && (ytan <= ((E.bottom - E.top) / iDiv) && ytan >= -((E.bottom - E.top) / iDiv)))
+		{
+			MoveToEx(PS.hdc, drzwi, ytan, NULL);
+			LineTo(PS.hdc, drzwi - 4, ytans);
+		}
+	}
+
+	EndPaint(Wnd, &PS);
+}
+
+static LRESULT CALLBACK FunkcjaOkienkowa(HWND Wnd, UINT Komunikat, WPARAM wParam, LPARAM lParam)
+{
+	switch (Komunikat)
+	{
+	case WM_PAINT:
+	{
+		OnWM_PAINT(Wnd);
+	}break;
+
+	case WM_DESTROY:
+	{
+		PostQuitMessage(0);
+	}break;
+
+	default: return DefWindowProc(Wnd, Komunikat, wParam, lParam);
+	}
+
+	return 0;
+}
+
+const static bool Rejestruj()
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.cbClsExtra = wc.cbWndExtra = 0;
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hInstance = hInst;
+	wc.lpfnWndProc = &FunkcjaOkienkowa;
+	wc.lpszClassName = NazwaKlasy.c_str();
+	wc.lpszMenuName = NULL;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	return (RegisterClassEx(&wc) != 0);
+}
+
+
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+	hInst = hInstance;
+	Pen[0] = CreatePen(PS_SOLID, 1, 0x00FFFFFF);
+	Pen[1] = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+
+
+	Rejestruj();
+
+	HWND GlowneOkno = CreateWindowEx(0, NazwaKlasy.c_str(), NazwaApp.c_str(), WS_OVERLAPPEDWINDOW | WS_VISIBLE, 50, 50, 700, 700, 0, 0, hInstance, 0);
+
+	MSG msg;
+
+	while (GetMessage(&msg, 0, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(NazwaKlasy.c_str(), hInstance);
+
+	return msg.wParam;
+}

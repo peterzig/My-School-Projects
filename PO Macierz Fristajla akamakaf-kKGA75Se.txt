@@ -1,0 +1,139 @@
+// Zadanko.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <malloc.h>
+
+class Macierz
+{
+public:
+	Macierz(int, int);
+	int Wiersze() const;
+	int Kolumny() const;
+	void Ustaw(int, int, float);
+	float Pobierz(int, int) const;
+
+private:
+	int wiersze;
+	int kolumny;
+	float** tab;
+};
+
+Macierz::Macierz(int wiersze, int kolumny)
+{
+	if (wiersze < 1 || kolumny < 1 || wiersze > 100 || kolumny > 100)
+	{
+		this->wiersze = 2;
+		this->kolumny = 2;
+	}
+	else
+	{
+		this->wiersze = wiersze;
+		this->kolumny = kolumny;
+	}
+
+	this->tab = (float**)malloc(sizeof(float*) * wiersze);
+	for (int i = 0; i < wiersze; i++)
+	{
+		tab[i] = (float*)malloc(sizeof(float) * kolumny);
+	}
+
+	for (int i = 0; i < wiersze; i++)
+	{
+		for (int j = 0; j < kolumny; j++)
+		{
+			tab[i][j] = 0;
+		}
+	}
+}
+
+int Macierz::Wiersze() const
+{
+	return wiersze;
+}
+
+int Macierz::Kolumny() const
+{
+	return kolumny;
+}
+
+void Macierz::Ustaw(int w, int k, float v)
+{
+	if (k > this->kolumny || w > this->wiersze)
+	{
+		printf("\nNie ma takiego wiersza/kolumny sry bro\n");
+		return;
+	}
+	else
+	{
+		tab[w][k] = v;
+	}
+}
+
+float Macierz::Pobierz(int w, int k) const
+{
+	if (k > this->kolumny || w > this->wiersze)
+	{
+		return 0;
+	}
+	else
+	{
+		return tab[w][k];
+	}
+}
+
+class MacierzWeWy : public Macierz
+{
+public:
+	MacierzWeWy(int, int);
+
+	void Wprowadz();
+	void Wyswietl() const;
+};
+
+
+MacierzWeWy::MacierzWeWy(int wiersze, int kolumny) : Macierz(wiersze, kolumny) {}
+
+void MacierzWeWy::Wprowadz()
+{
+	printf("Liczba wierszy: %d | Liczba kolumn: %d", Macierz::Wiersze(), Macierz::Kolumny());
+	printf("\n\nPodaj gdzie (wiersze, kolumny - 0 = poczatek) i jaka liczbe chcesz wpisac: ");
+	int w, k;
+	float v;
+	scanf_s("%d %d %f", &w, &k, &v);
+
+	Macierz::Ustaw(w, k, v);
+
+	printf("\nDodales do [%d][%d] wartosc: %6.3f\n", w, k, Pobierz(w, k));
+}
+
+void MacierzWeWy::Wyswietl() const
+{
+	for (int i = 0; i < Macierz::Wiersze(); i++)
+	{
+		printf("[");
+		for (int j = 0; j < Macierz::Kolumny(); j++)
+		{
+			(j + 1) == Macierz::Kolumny() ? printf("%6.3f", Pobierz(i, j)) : printf("%6.3f ", Pobierz(i, j));
+		}
+		printf("]\n");
+	}
+}
+
+int main()
+{
+	MacierzWeWy m(5, 3);
+
+	m.Wyswietl();
+
+	m.Wprowadz();
+
+	m.Wyswietl();
+
+	m.Wprowadz();
+	m.Wyswietl();
+
+	_getch();
+    return 0;
+}

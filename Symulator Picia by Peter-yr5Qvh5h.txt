@@ -1,0 +1,86 @@
+// symulatorpicia.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <string>
+
+float licznik;
+float j;
+
+int main()
+{
+	std::string imie[10];
+	printf("Witamy w symulatorze picia! Podaj swoje imie: ");
+	scanf("%s", imie);
+	printf("Witamy Cie %s, twoi dzisiejsi przeciwnicy to: \n", imie);
+	int i;
+	char napisy[4][16] = { "Kwasniewski", "Kasperski", "Paszek", "Wieslaw Wszywka" };
+	for (i = 0; i<4; i++)
+	{
+		printf("%s\n", napisy[i]);
+	}
+	int paliwo;
+	float piwo = 0.35;
+	float wino = 0.25;
+	float wodka1 = 0.22;
+	float wodka2 = 0.56;
+	for (j = 0; j < 10; ++j) {
+		printf("\nWybierz swoje paliwo: (numer)\n");
+		printf("1.Piwo butelka 500ml \n");
+		printf("2.Wino kieliszek 120ml \n");
+		printf("3.Wodka kieliszek 40ml \n");
+		printf("4.Wodka kieliszek 100ml \n");
+		scanf("%d", &paliwo);
+		do
+		{
+			{
+				switch (paliwo)
+				{
+				case 1:
+					for (licznik = 0; licznik < 5; ++licznik)
+					{
+						licznik += piwo;
+						printf("Wypijasz piwko, masz %f promili we krwi. Slabiutko!\n", licznik);
+					}
+					break;
+				case 2:
+					for (licznik = 0; licznik < 5; ++licznik) {
+						licznik += wino;
+						printf("Wypijasz winko, masz %f promili we krwi. Slabiutko!\n", licznik);
+					}
+					break;
+				case 3:
+					for (licznik = 0; licznik < 5; ++licznik)
+					{
+						licznik += wodka1;
+						printf("Wypijasz 40ml wodeczki, masz %f promili we krwi. Slabiutko!\n", licznik);
+					}
+					break;
+				case 4:
+					for (licznik = 0; licznik < 5; ++licznik)
+					{
+						licznik += wodka2;
+						printf("Wypijasz 100ml wodeczki, masz %f promili we krwi. Slabiutko!\n", licznik);
+					}
+					break;
+				default:
+					printf("Jestes tak najebany/a ze nie trafiasz w cyferki na klawiaturze.\n");
+					break;
+				}
+			}
+		} while (licznik < 4.5);
+
+			if (licznik> 4.5)
+		{
+			int i;
+			char napisy[4][16] = { "Kwasniewski", "Kasperski", "Paszek", "Wieslaw Wszywka" };
+			{
+				int n = rand() % 4;
+				printf("Przegrales gre! Wygrywa: %s\n", napisy[n]);
+				}
+			}
+		}
+		_getch();
+		return 0;
+	}

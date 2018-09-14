@@ -1,0 +1,320 @@
+#include <windows.h>
+#include <deque>
+#include <time.h>
+
+#define SCREEN_WIDTH 1000
+#define SCREEN_HEIGHT 800
+#define TIMER_ID1 1
+#define TIMER_ID2 2
+#define TIMER_ID3 3
+#define BULLET_SIZE 10
+#define EXPOLE_SQUARE_SIZE 20
+
+TCHAR className[] = TEXT("Class");
+TCHAR appName[] = TEXT("Gra z jakimiś gównami, grunt że śmiga");
+
+HWND hwnd;
+MSG msg;
+
+struct Container {
+	float x, y;
+	UINT sizeX, sizeY;
+	float xVel, yVel;
+};
+
+std::deque<Container> bullets;
+
+Container player;
+Container enemy;
+
+HBITMAP CreateBitmapMask(HBITMAP hbmColour, COLORREF crTransparent)
+{
+	HDC hdcMem, hdcMem2;
+	HBITMAP hbmMask, hbmOld, hbmOld2;
+	BITMAP bm;
+
+	GetObject(hbmColour, sizeof(BITMAP), &bm);
+	hbmMask = CreateBitmap(bm.bmWidth, bm.bmHeight, 1, 1, NULL);
+
+	hdcMem = CreateCompatibleDC(NULL);
+	hdcMem2 = CreateCompatibleDC(NULL);
+
+	hbmOld = (HBITMAP)SelectObject(hdcMem, hbmColour);
+	hbmOld2 = (HBITMAP)SelectObject(hdcMem2, hbmMask);
+
+	SetBkColor(hdcMem, crTransparent);
+
+	BitBlt(hdcMem2, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
+	BitBlt(hdcMem, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem2, 0, 0, SRCINVERT);
+
+	SelectObject(hdcMem, hbmOld);
+	SelectObject(hdcMem2, hbmOld2);
+	DeleteDC(hdcMem);
+	DeleteDC(hdcMem2);
+
+	return hbmMask;
+}
+
+void addBullet() {
+	Container container;
+	container.x = enemy.x + (enemy.sizeX / 2) + (BULLET_SIZE / 2);
+	container.y = enemy.y + (enemy.sizeY / 2);
+	container.sizeX = BULLET_SIZE;
+	container.sizeY = container.sizeX * 2;
+	container.xVel = 0;
+	container.yVel = 5;
+
+	bullets.push_back(container);
+}
+
+int randomEnemyVelocity() {
+	return (rand() % 20) - 10;
+}
+
+bool checkCollision(Container A, Container B)
+{
+	RECT objectA, objectB;
+
+	objectA.left = A.x;
+	objectA.right = A.x + A.sizeX;
+	objectA.top = A.y;
+	objectA.bottom = A.y + A.sizeY;
+
+	objectB.left = B.x;
+	objectB.right = B.x + B.sizeX;
+	objectB.top = B.y;
+	objectB.bottom = B.y + B.sizeY;
+
+	if (objectA.bottom <= objectB.top)
+	{
+		return false;
+	}
+
+	if (objectA.top >= objectB.bottom)
+	{
+		return false;
+	}
+
+	if (objectA.right <= objectB.left)
+	{
+		return false;
+	}
+
+	if (objectA.left >= objectB.right)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void enemyUpdate(RECT clientRect) {
+	enemy.x += enemy.xVel;
+
+	if (enemy.x + enemy.xVel < 0) {
+		enemy.x = enemy.xVel;
+		enemy.xVel = -enemy.xVel;
+	}
+
+	else if (enemy.x + enemy.xVel > clientRect.right - enemy.sizeX) {
+		enemy.x = clientRect.right - enemy.sizeX - enemy.xVel;
+		enemy.xVel = -enemy.xVel;
+	}
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static RECT clientRect;
+	static HBITMAP backgroundBitMap, playerBitmap, playerMask, enemyBitmap, enemyMask;
+	static PAINTSTRUCT ps;
+	static BITMAP bgInfo, playerInfo, enemyInfo;
+	static HBRUSH whiteColor;
+	static UINT score = 0;
+
+	switch (msg) {
+	case WM_CREATE: {
+		srand(time(NULL));
+		GetClientRect(hwnd, &clientRect);
+		SetTimer(hwnd, TIMER_ID1, 20, NULL);
+		SetTimer(hwnd, TIMER_ID2, 3000, NULL);
+		SetTimer(hwnd, TIMER_ID3, 50, NULL);
+
+		whiteColor = (HBRUSH)CreateSolidBrush(RGB(255, 255, 255));
+
+		backgroundBitMap = (HBITMAP)LoadImage(NULL, TEXT("_background.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		playerBitmap = (HBITMAP)LoadImage(NULL, TEXT("_player.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		playerMask = CreateBitmapMask(playerBitmap, RGB(0, 0, 0));
+		enemyBitmap = (HBITMAP)LoadImage(NULL, TEXT("_enemy.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		enemyMask = CreateBitmapMask(enemyBitmap, RGB(0, 0, 0));
+
+		GetObject(backgroundBitMap, sizeof(bgInfo), &bgInfo);
+		GetObject(enemyBitmap, sizeof(enemyInfo), &enemyInfo);
+		GetObject(playerBitmap, sizeof(playerInfo), &playerInfo);
+
+		player.sizeX = playerInfo.bmWidth;
+		player.sizeY = playerInfo.bmHeight;
+		player.x = (clientRect.right / 2) - (player.sizeX / 2);
+		player.y = clientRect.bottom - (clientRect.bottom / 4);
+
+		enemy.sizeX = enemyInfo.bmWidth;
+		enemy.sizeY = enemyInfo.bmHeight;
+		enemy.x = (clientRect.right / 2) - (enemy.sizeX / 2);
+		enemy.y = 100;
+	}break;
+
+	case WM_PAINT: {
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		/////////////////////////////////////////////////////////////////////
+
+		HDC hdcNowy = CreateCompatibleDC(hdc);
+		HBITMAP hbmOld = (HBITMAP)SelectObject(hdcNowy, backgroundBitMap);
+		BitBlt(hdc, 0, 0, bgInfo.bmWidth, bgInfo.bmHeight, hdcNowy, 0, 0, SRCCOPY);
+
+		SelectObject(hdcNowy, hbmOld);
+
+		/////////////////////////////////////////////////////////////////////
+
+		SelectObject(hdc, whiteColor);
+
+		for (std::deque<Container>::iterator it = bullets.begin(); it != bullets.end(); ++it)
+			Ellipse(hdc, it->x, it->y, it->x + it->sizeX, it->y + it->sizeY);
+
+		/////////////////////////////////////////////////////////////////////
+
+		hbmOld = (HBITMAP)SelectObject(hdcNowy, playerMask);
+
+		BitBlt(hdc, player.x, player.y, player.sizeX, player.sizeY, hdcNowy, 0, 0, SRCAND);
+		SelectObject(hdcNowy, playerBitmap);
+		BitBlt(hdc, player.x, player.y, player.sizeX, player.sizeY, hdcNowy, 0, 0, SRCPAINT);
+
+		SelectObject(hdcNowy, hbmOld);
+
+		/////////////////////////////////////////////////////////////////////
+
+		hbmOld = (HBITMAP)SelectObject(hdcNowy, enemyMask);
+
+		BitBlt(hdc, enemy.x, enemy.y, enemy.sizeX, enemy.sizeY, hdcNowy, 0, 0, SRCAND);
+		SelectObject(hdcNowy, enemyBitmap);
+		BitBlt(hdc, enemy.x, enemy.y, enemy.sizeX, enemy.sizeY, hdcNowy, 0, 0, SRCPAINT);
+
+		SelectObject(hdcNowy, hbmOld);
+
+		DeleteDC(hdcNowy);
+		EndPaint(hwnd, &ps);
+	}break;
+
+	case WM_TIMER: {
+		switch (wParam) {
+		case TIMER_ID1: {
+			for (std::deque<Container>::iterator it = bullets.begin(); it != bullets.end(); ++it) {
+				it->y += it->yVel;
+				it->x += it->xVel;
+
+				if (it->y > clientRect.bottom) {
+					bullets.erase(it);
+					break;
+				}
+			}
+
+			enemyUpdate(clientRect);
+
+			for (std::deque<Container>::iterator b = bullets.begin(); b != bullets.end(); ++b)
+				if (checkCollision(*b, player)) {
+					score += 10;
+					bullets.erase(b);
+					break;
+				}
+
+			InvalidateRect(hwnd, NULL, 0);
+		}break;
+
+		case TIMER_ID2:
+			enemy.xVel = randomEnemyVelocity();
+			break;
+
+		case TIMER_ID3:
+			addBullet();
+			break;
+		}break;
+	}break;
+
+	case WM_KEYDOWN:
+		switch ((int)wParam)
+		{
+		case VK_RIGHT:
+			if (player.x + 5 < clientRect.right - player.sizeX)
+				player.x += 5;
+			break;
+
+		case VK_LEFT:
+			if (player.x - 5 > 0)
+				player.x -= 5;
+			break;
+
+		case VK_SPACE:
+			addBullet();
+			break;
+
+		default:
+			break;
+		}
+		break;
+
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	case WM_DESTROY: {
+		KillTimer(hwnd, TIMER_ID1);
+		KillTimer(hwnd, TIMER_ID2);
+		KillTimer(hwnd, TIMER_ID3);
+		PostQuitMessage(0);
+	}break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = className;
+	wc.lpszMenuName = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	if (RegisterClassEx(&wc) == 0) {
+		MessageBox(NULL, TEXT("Some problem with RegisterClassEx"), className, MB_OK);
+		return 1;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE, className, appName, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, hInstance, 0);
+	if (hwnd == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by hwnd"), className, MB_OK);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(className, hInstance);
+
+	return msg.wParam;
+}

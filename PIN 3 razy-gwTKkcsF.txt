@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <conio.h>
+
+int main ()
+{
+   int pin, i;
+   printf ("Podaj PIN: ");
+   scanf ("%d",&pin);
+   if (pin==1234)
+    {
+      printf ("PIN przyjety");  
+    }
+    else
+    {
+        for (i=3; i>0 ; i--)
+       {
+            if (pin == 1234){
+                printf ("PIN poprawny"); break;
+                }
+            else {
+           printf ("PIN niepoprawny,pozostalo %d prób \n Podaj PIN: ",i);
+          scanf ("%d",&pin); 
+            }
+            
+           }
+    }
+  getch ();
+   return 0;  
+}

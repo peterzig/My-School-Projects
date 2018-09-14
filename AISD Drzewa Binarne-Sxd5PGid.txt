@@ -1,0 +1,100 @@
+//Drzewa.cpp
+
+#include <stdio.h>
+#include <conio.h>
+#include <malloc.h>
+
+struct element {
+	int dane;
+	struct element * lewy;
+	struct element * prawy;
+};
+
+struct element * NowyElement(int _dane)
+{
+	struct element * Nowy = (struct element*)malloc(sizeof(struct element));
+	Nowy->dane = _dane;
+	Nowy->lewy = Nowy->prawy = 0;
+	return Nowy;
+}
+
+void WstawElement(struct element * korzen, int _dane)
+{
+	for(;;) {
+		if(_dane < korzen->dane) {
+			if(korzen->lewy == 0)
+			{
+				korzen->lewy = NowyElement(_dane);
+				return;
+			} else
+				korzen = korzen->lewy;
+		} else {
+			if(korzen->prawy == 0)
+			{
+				korzen->prawy = NowyElement(_dane);
+				return;
+			} else 
+				korzen = korzen->prawy;
+		}
+	}
+}
+
+int l = 0, p = 0;
+void Wyswietl(struct element * korzen)
+{
+	printf("%d \n",korzen->dane);
+	if(korzen->lewy) 
+	{
+		++l; 
+		printf("%d/", l);
+		Wyswietl(korzen->lewy); 
+	}
+	if(korzen->prawy) 
+	{
+		++p; 
+		printf("%d\\", p);
+		Wyswietl(korzen->prawy); 
+	}
+}
+
+bool Wyszukaj(element * korzen, int _dane)
+{
+	if(korzen == NULL)
+		return false;
+	else if(korzen->dane == _dane)
+		return true;
+	else if(korzen->dane < _dane)
+		return Wyszukaj(korzen->prawy, _dane);
+	else
+		return Wyszukaj(korzen->lewy, _dane);
+}
+
+void Zwalnianie (element * korzen)
+{
+	if(korzen != NULL)
+	{
+		if(korzen->lewy != NULL)
+			Zwalnianie(korzen->lewy);
+		if(korzen->prawy != NULL)
+			Zwalnianie(korzen->prawy);
+		delete korzen;
+	}
+}
+
+int main() {
+	struct element * k = NowyElement(5);
+
+	WstawElement(k, 2);
+	WstawElement(k, 1);
+	WstawElement(k, 6);
+	WstawElement(k, 7);
+
+	Wyswietl(k);
+
+	printf("\n%d", Wyszukaj(k, 4));
+	printf("\n%d", Wyszukaj(k, 2));
+
+	Zwalnianie(k);
+	getch();
+	return 0;
+}

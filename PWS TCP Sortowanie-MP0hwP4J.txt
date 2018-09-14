@@ -1,0 +1,149 @@
+#pragma comment(lib,"ws2_32.lib")
+#include <winsock2.h>
+#include <iostream>
+#include <conio.h>
+#include <string>
+using namespace std;
+
+void wyswietl(const int *tab, const int n)
+{
+	cout << "\nDane\n\n";
+	for (int i = 0; i < n; i++)
+	{
+		cout << tab[i] << endl;
+	}
+}
+
+void sortuj(int *tab, const int size, const int znak)
+{
+	if( znak > 0)
+		for (int i = size - 1; i >= 0; i--)
+		{
+			int temp = tab[0];
+			int id = 0;
+			for (int j = 0; j <= i; j++)
+			{
+				if (temp < tab[j])
+				{
+					temp = tab[j];
+					id = j;
+				}
+			}
+			tab[id] = tab[i];
+			tab[i] = temp;
+		}
+
+	else if(znak <= 0)
+		for (int i = size - 1; i >= 0; i--)
+		{
+			int temp = tab[0];
+			int id = 0;
+			for (int j = 0; j <= i; j++)
+			{
+				if (temp > tab[i])
+				{
+					temp = tab[i];
+					id = j;
+				}
+			}
+			tab[id] = tab[i];
+			tab[i] = temp;
+		}
+}
+
+int main()
+{
+    WSADATA Data;
+    WSAStartup(MAKEWORD(2,2), &Data);
+    sockaddr_in Adr;
+    //Adr.sin_addr.s_addr = inet_addr("192.168.0.104");
+    Adr.sin_addr.s_addr = inet_addr("127.1.0.0");
+	Adr.sin_port = htons(7700);
+    Adr.sin_family = AF_INET;
+    SOCKET s;
+    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int iResult;
+    if(connect(s, (SOCKADDR*)&Adr, sizeof(Adr)) < 0)
+    {
+        cout << "Blad w polaczeniu do serwera: " << WSAGetLastError();
+        _getch();
+        shutdown(s, 2);
+        closesocket(s);
+        WSACleanup();
+        return 0;
+    }
+	char buff[34] = {0};
+    int len = recv(s, buff, sizeof(buff), 0);
+    buff[len] = '\0';
+    cout << buff << endl;
+
+    if(buff[0] == '4')
+    {
+        cout << "Blad w polaczeniu do serwera: " << WSAGetLastError();
+        _getch();
+        shutdown(s, 2);
+        closesocket(s);
+        WSACleanup();
+        return 0;
+    }
+
+	//send(s, "SORT", sizeof("SORT"), 0);
+    signed char znak;
+    do
+    {
+		send(s, (char*)"SORT", sizeof("SORT"), 0);
+        iResult = recv(s, (char*)&znak, sizeof(znak), 0);
+        if (iResult == SOCKET_ERROR) {
+            printf("send failed: %d\n", WSAGetLastError());
+            closesocket(s);
+            WSACleanup();
+            return 1;
+        }    
+        //signed char znak = liczba;
+        int size = abs(znak);
+        int *tab = new int[size];
+
+        iResult = recv(s, (char*)&(*tab), sizeof(tab) * size, 0);
+        if (iResult == SOCKET_ERROR) {
+            printf("send failed: %d\n", WSAGetLastError());
+            closesocket(s);
+            WSACleanup();
+            return 1;
+        }
+		cout << "Dane przed sortowaniem\n\n";
+        wyswietl(tab, size);
+        int temp; 
+        int id;
+
+		sortuj(tab, size, znak);
+		cout << "Dane po sortowaniu\n\n";
+		wyswietl(tab, size);
+        ////odesłanie w postaci binarnej
+        //iResult = send(s, (char*)tab, sizeof(tab) * size, 0);
+        //if (iResult == SOCKET_ERROR) {
+        //    printf("send failed: %d\n", WSAGetLastError());
+        //    closesocket(s);
+        //    WSACleanup();
+        //    return 1;
+        //}
+        //odesłanie w postaci tekstowej
+
+        iResult = send(s, (char*)&(*tab), sizeof(tab) * size, 0);
+        if (iResult == SOCKET_ERROR) {
+            printf("send failed: %d\n", WSAGetLastError());
+            closesocket(s);
+            WSACleanup();
+            return 1;
+        }
+		memset(buff, 0, sizeof(buff));
+		recv(s, buff, sizeof(buff), 0);
+		cout << buff << endl;
+		_getch();
+    } while (true);
+
+    _getch();
+    shutdown(s, 2);
+    closesocket(s);
+    WSACleanup();
+    return 0;
+}

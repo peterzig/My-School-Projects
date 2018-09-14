@@ -1,0 +1,99 @@
+// [AISD] MacierzCOO.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <cstdlib>
+#include <iostream>
+
+using namespace std;
+
+struct ElementMacierzyCOO
+{
+	int Wiersz;
+	int Kolumna;
+	int Wartosc;
+};
+
+struct MacierzCOO
+{
+	int Niezerowych;
+	int Wiersze;
+	int Kolumny;
+	ElementMacierzyCOO *Elementy;
+};
+
+bool WczytanieMacierzyCOO(MacierzCOO *macierz)
+{
+	FILE *plik = fopen("plik.txt","r");
+
+		if (plik != NULL)
+		{
+			fscanf(plik, "%i%i%i", &macierz->Wiersze, &macierz->Kolumny, &macierz->Niezerowych);
+			macierz->Elementy = (ElementMacierzyCOO*)malloc(sizeof(ElementMacierzyCOO)*macierz->Niezerowych);
+
+
+			if (macierz->Elementy != NULL)
+			{
+				for (int i = 0; i< macierz->Niezerowych; i++)
+				{
+					fscanf(plik, "%i%i%i", &macierz->Elementy[i].Wiersz, &macierz->Elementy[i].Kolumna, &macierz->Elementy[i].Wartosc);
+				}
+				fclose(plik);
+				return true;
+			}
+			else
+			{
+				fclose(plik);
+				return false;
+			}
+		}
+}
+
+void WyswietlMacierzCOO(MacierzCOO *macierz)
+{
+	if (macierz != NULL)
+	{
+		if (macierz->Elementy != NULL)
+		{
+			unsigned int wartownik = 0;
+			for (unsigned int i = 0; i<macierz->Wiersze && wartownik != macierz->Niezerowych; i++)
+			{
+				printf("%2i[", i + 1);
+				for (unsigned int x = 0; x<macierz->Kolumny && wartownik != macierz->Niezerowych; x++)
+				{
+					for (unsigned int y = 0; y<macierz->Kolumny && wartownik != macierz->Niezerowych; y++)
+					{
+						if ((i == (macierz->Elementy[y].Wiersz - 1)) && (x == (macierz->Elementy[y].Kolumna - 1)))
+						{
+							printf("%i", macierz->Elementy[y].Wartosc);
+							wartownik++;
+							break;
+						}
+					}
+				}
+				printf("]\n");
+			}
+			printf("\n");
+		}
+	}
+}
+
+void ZwolnijMacierzCOO(MacierzCOO *macierz)
+{
+	if (macierz != NULL)
+	{
+		free(macierz->Elementy);
+		free(macierz);
+	}
+}
+
+int main()
+{
+	printf("MacierzCOO \n");
+	//WczytanieMacierzyCOO();
+	//WyswietlMacierzCOO();
+	//ZwolnijMacierzCOO();
+	_getch();
+    return 0;
+}

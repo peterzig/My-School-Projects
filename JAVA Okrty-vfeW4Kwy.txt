@@ -1,0 +1,147 @@
+///////////////////////Statki.java//////////////////////////
+
+
+package statki;
+
+public class Statki {
+
+    public static void main(String[] args) {
+        OkretPodwodny nazwa = new OkretPodwodny("Kozak", 100, 200, 20, 10);
+        nazwa.Wyswietl();
+        nazwa.Zanurz(20);
+        nazwa.Zanurzenie();
+        OkretNawodny nazwa1 = new OkretNawodny("Hej", 100);
+        nazwa1.setWieze(10);
+        nazwa1.setZasieg(1000);
+        nazwa1.Wyswietl();
+        nazwa1.CzyZakotwiczony();
+        nazwa1.RzucKotwice();
+        nazwa1.CzyZakotwiczony();
+        nazwa1.PodniesKotwice();
+        nazwa1.CzyZakotwiczony();
+    }
+    
+}
+
+///////////////////////Okret.java///////////////////////////////
+
+
+package statki;
+
+public abstract class Okret {
+    String nazwa;
+    int wypornosc;
+    
+    public Okret(String nazwa, int wypornosc){
+        this.nazwa = nazwa;
+        this.wypornosc = wypornosc;
+    }
+    
+    public abstract void Wyswietl();
+}
+
+
+///////////////////OkretPodwodny.java////////////////////////////
+
+package statki;
+
+public class OkretPodwodny extends Okret{
+    int wPodwodna;
+    int wDziobowe;
+    int wRufowe;
+    
+    public OkretPodwodny(String nazwa, int wypornosc, int wPodwodna, int wDziobowe, int wRufowe){
+        super(nazwa,wypornosc);
+        this.wPodwodna = wPodwodna;
+        this.wDziobowe = wDziobowe;
+        this.wRufowe = wRufowe;
+    }
+    
+    public int getDziobowe(){
+        return wDziobowe;
+    }
+    
+    public int getRufowe(){
+        return wRufowe;
+    }
+    
+    public int wPodwodna(){
+        return wPodwodna;
+    }
+    
+    int zanurzenie;
+    void Zanurz (int zanurz)
+    {
+        zanurzenie = zanurz;
+    }
+    void Zanurzenie ()
+    {
+     if (zanurzenie == 0)
+     System.out.println("Zanurzenie okretu wynosi: " + zanurzenie + "m. Okręt wynurzony");
+     else
+     System.out.println("Zanurzenie okretu wynosi: " + zanurzenie + "m");
+    }
+    @Override public void Wyswietl()
+    {
+       System.out.println("Nazwa statku: " + nazwa );
+       System.out.println("Wypornosc: " + wypornosc );
+       System.out.println("Wypornosc podwodna: " + wPodwodna );
+       System.out.println("Ilość wyrzutni rufowych: " + wRufowe );
+       System.out.println("Ilość wyrzutni dziobowych: " + wDziobowe );
+    }
+}
+
+
+///////////////////////OkretNawodny.java////////////////////////////////////////
+
+
+package statki;
+
+public class OkretNawodny extends Okret{
+    int wieze;
+    int zasieg;
+    
+    public OkretNawodny(String nazwa, int wypornosc){
+       super(nazwa,wypornosc); 
+    }
+    
+    public int getWieze(){
+        return wieze;
+    }
+    
+    public void setWieze(int wieze){
+        this.wieze = wieze;
+    }
+    
+    public void setZasieg(int zasieg){
+        this.zasieg = zasieg;
+    }
+    
+    public int getZasieg(){
+        return zasieg;
+    }
+    
+    int kotwica;
+    void RzucKotwice()
+    {
+        kotwica = 1;
+    }
+    void PodniesKotwice()
+    {
+        kotwica = 0;
+    }
+    void CzyZakotwiczony()
+    {
+    if(kotwica == 0)
+        System.out.println("Okret ma podniesioną kotwicę");
+    if(kotwica == 1)
+        System.out.println("Okret ma opuszczoną kotwicę");
+    }
+    @Override public void Wyswietl()
+    {
+       System.out.println("Nazwa statku: " + nazwa );
+       System.out.println("Wypornosc: " + wypornosc );
+       System.out.println("Liczba wiez: " + wieze );
+       System.out.println("Zasieg: " + zasieg );
+    }
+}

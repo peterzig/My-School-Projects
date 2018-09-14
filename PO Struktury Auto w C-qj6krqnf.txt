@@ -1,0 +1,49 @@
+// struktury.cpp : Defines the entry point for the console application.
+//
+
+#include <stdlib.h>
+#include "conio.h"
+#include <stdio.h>
+
+struct Samochod
+{
+	char marka[20];
+	char kolor[20];
+	int rocznik;
+};
+
+
+int main()
+{
+	Samochod *sam;
+	sam = (Samochod*)malloc(3 * sizeof(Samochod));
+	for (int i = 0; i < 3; i++)
+	{
+		printf("Marka: ");
+		scanf("%s", &sam[i].marka);
+		printf("Kolor: ");
+		scanf("%s",&sam[i].kolor);
+		printf("Rocznik: ");
+		scanf("%d",&sam[i].rocznik);
+	}
+
+	FILE *file;
+	file = fopen("plik.txt", "wt");
+	if (file)
+	{
+		for (int i = 0; i < 3;++i)
+		{
+			fprintf(file, "%s %s %d\n", sam[i].marka,sam[i].kolor,sam[i].rocznik );
+		}
+	}
+	fclose(file);
+	for (int i = 0; i < 3; ++i)
+	{
+		printf("\nMarka: %s\n", sam[i].marka);
+		printf("Kolor: %s\n", sam[i].kolor);
+		printf("Rocznik: %d\n", sam[i].rocznik);
+	}
+	free(sam);
+	_getch();
+	return 0;
+}

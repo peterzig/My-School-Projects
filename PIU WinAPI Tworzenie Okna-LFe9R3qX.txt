@@ -1,0 +1,45 @@
+#include <windows.h>
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpsCmdLine, int nMode)
+{
+	//uchwyt okna
+	HWND hOkno;
+	//struktura komunikatów
+	MSG message;
+	//klasa okna
+	WNDCLASS okno;
+
+	//uchwyt instancji
+	okno.hInstance = hInstance;
+	//nazwa klasy okna
+	okno.lpszClassName = L"klasa główna";
+	//standardowa procedura okna
+	okno.lpfnWndProc = DefWindowProc;
+	//brak menu
+	okno.lpszMenuName = NULL;
+	//standardowe okno
+	okno.style = 0;
+	//standardowa ikona
+	okno.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	//standardowy kursor
+	okno.hCursor = LoadCursor(NULL, IDC_ARROW);
+	//czarny kolor
+	okno.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	//brak przydziału dodatkowej pamieci dla klasy okna
+	okno.cbClsExtra = 0;
+	//brak przydziału dodatkowej pamieci okna
+	okno.cbWndExtra = 0;
+	//rejestracja klasy okna
+	if (!RegisterClass(&okno)) return 0;
+	//utworzenie okna
+	hOkno = CreateWindow(L"klasa główna", L"łokno :p",
+		WS_OVERLAPPEDWINDOW, 100, 100, 200, 100,
+		NULL, NULL, hInstance, NULL);
+	//wyświetlenie okna na ekranie
+	ShowWindow(hOkno, SW_SHOW);
+
+	while (GetMessage(&message, NULL, 0, 0))
+	{
+		DispatchMessage(&message);
+	}
+}

@@ -1,0 +1,622 @@
+#include <Windows.h>
+#define COLOURS 16
+#define BRUSH_SIZE 20
+#define SQUARE_SIZE 35
+ 
+TCHAR className[] = TEXT("Nazwa_klasy");
+TCHAR appName[] = TEXT("Nazwa_okna");
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+ 
+void DrawBoxOutline(HWND, POINT, POINT, RECT, LPARAM);
+void UstawPrzybornik(HWND); // ustawia przybornik po lewej stronie
+void UstawFigury(); // Ustawia figury pod kolorami
+void UstawKolory(); // Ustawia kolory w przyborniku
+void JakieKolory(); // Tworzymy palete kolorow
+bool SprawdzKolizjePrzybornik(RECT, LPARAM); //wylaczy obszar przybornika z rysowania
+bool SprawdzKolizjeKwadraty(RECT, LPARAM); //wylaczy obszar przybornika z rysowania
+ 
+enum TOOL
+{
+    NONE, 
+    FILL_TRIANGLE, 
+    TRIANGLE, 
+    FILL_CIRCLE,
+    CIRCLE,
+    FILL_SQUARE,
+    SQUARE,
+    LINE,
+    BRUSH_CIRCLE,
+    BRUSH_SQUARE
+} tool;
+ 
+RECT przybornik;
+RECT tools[9];
+COLORREF color = RGB(0, 0, 0);
+ 
+struct Colours {
+    RECT rect;
+    COLORREF color;
+} colours[COLOURS];
+ 
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR ilCmdLine, int nCmdShow)
+{
+    WNDCLASSEX wC = { 0 };
+    HWND hwnd = NULL;
+    MSG msg;
+ 
+    wC.cbSize = sizeof(WNDCLASSEX);
+    wC.style = CS_VREDRAW | CS_HREDRAW;
+    wC.cbClsExtra = NULL;
+    wC.cbWndExtra = NULL;
+    wC.hInstance = hInstance;
+    wC.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wC.lpfnWndProc = WndProc;
+    wC.lpszClassName = className;
+    wC.lpszMenuName = 0;
+    wC.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wC.hIconSm = NULL;
+    wC.hCursor = LoadCursor(NULL, IDC_CROSS);
+ 
+    ATOM result = RegisterClassEx(&wC);
+    if (!result)
+    {
+        MessageBox(0, TEXT("Błąd funkcji RegisterClassEx"), appName, MB_OK);
+    }
+ 
+    hwnd = CreateWindow(
+        className,
+        appName,
+        (WS_OVERLAPPEDWINDOW | WS_VISIBLE) ^ (WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX),
+        100,
+        100,
+        800,
+        600,
+        NULL,
+        NULL,
+        hInstance,
+        NULL
+    );
+ 
+    if (hwnd = NULL)
+    {
+        if (result)
+        {
+            UnregisterClass(className, hInstance);
+            return -1;
+        }
+        return -1;
+    }
+ 
+    ShowWindow(hwnd, nCmdShow);
+    UpdateWindow(hwnd);
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+ 
+    if (result)
+    {
+        UnregisterClass(className, hInstance);
+    }
+    return msg.wParam;
+}
+ 
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    static BOOL fBlocking, fValidBox;
+    static POINT ptBeg, ptEnd, ptBoxBeg, ptBoxEnd;
+    HDC hdc;
+    PAINTSTRUCT ps;
+ 
+    switch (msg)
+    {
+    case WM_CREATE:
+        JakieKolory();
+        break;
+ 
+    case WM_LBUTTONDOWN:
+    {
+        if (!SprawdzKolizjePrzybornik(przybornik, lParam))
+        {
+            ptBeg.x = ptEnd.x = LOWORD(lParam);
+            ptBeg.y = ptEnd.y = HIWORD(lParam);
+ 
+            DrawBoxOutline(hwnd, ptBeg, ptEnd, przybornik, lParam);
+ 
+            SetCapture(hwnd);
+            SetCursor(LoadCursor(NULL, IDC_CROSS));
+                
+            fBlocking = true;
+        }
+        else
+        {
+            for (int i = 0; i < COLOURS; i++)
+                if (SprawdzKolizjeKwadraty(colours[i].rect, lParam))
+                {
+                    color = colours[i].color;
+                    break;
+                }
+ 
+            for (int i = 0; i < 9; i++)
+            {
+                if (SprawdzKolizjeKwadraty(tools[i], lParam))
+                {
+                    switch (i)
+                    {
+                    case 0:
+                        tool = FILL_TRIANGLE;
+                        break;
+                    case 1:
+                        tool = TRIANGLE;
+                        break;
+                    case 2:
+                        tool = FILL_CIRCLE;
+                        break;
+                    case 3:
+                        tool = CIRCLE;
+                        break;
+                    case 4:
+                        tool = FILL_SQUARE;
+                        break;
+                    case 5:
+                        tool = SQUARE;
+                        break;
+                    case 6:
+                        tool = LINE;
+                        break;
+                    case 7:
+                        tool = BRUSH_CIRCLE;
+                        break;
+                    case 8:
+                        tool = BRUSH_SQUARE;
+                        break;
+                    }
+                    break;
+                }
+            }
+            ReleaseCapture();
+            fBlocking = false;
+        }
+    }
+    break;
+ 
+    case WM_MOUSEMOVE:
+    {
+        if (!SprawdzKolizjePrzybornik(przybornik, lParam))
+        {
+            if (tool == BRUSH_CIRCLE && fBlocking == true)
+            {
+                hdc = GetDC(hwnd);
+                HBRUSH pedzel, pudelko;
+                HPEN pen, box;
+                pedzel = CreateSolidBrush(color);
+                pen = CreatePen(PS_SOLID, 0, color);
+                pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+                box = (HPEN)SelectObject(hdc, pen);
+                Ellipse(hdc, LOWORD(lParam) - (BRUSH_SIZE / 2), HIWORD(lParam) - (BRUSH_SIZE / 2), LOWORD(lParam) + (BRUSH_SIZE / 2), HIWORD(lParam) + (BRUSH_SIZE / 2));
+                SelectObject(hdc, pudelko);
+                SelectObject(hdc, pen);
+                DeleteObject(box);
+                DeleteObject(pedzel);
+                DeleteObject(pen);
+                DeleteObject(pudelko);
+                ReleaseDC(hwnd, hdc);
+            }
+            else if (tool == BRUSH_SQUARE && fBlocking == true)
+            {
+                hdc = GetDC(hwnd);
+                HBRUSH pedzel, pudelko;
+                HPEN pen, box;
+                pedzel = CreateSolidBrush(color);
+                pen = CreatePen(PS_SOLID, 0, color);
+                pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+                box = (HPEN)SelectObject(hdc, pen);
+                Rectangle(hdc, LOWORD(lParam) - (BRUSH_SIZE / 2), HIWORD(lParam) - (BRUSH_SIZE / 2), LOWORD(lParam) + (BRUSH_SIZE / 2), HIWORD(lParam) + (BRUSH_SIZE / 2));
+                SelectObject(hdc, pudelko);
+                SelectObject(hdc, pen);
+                DeleteObject(box);
+                DeleteObject(pedzel);
+                DeleteObject(pen);
+                DeleteObject(pudelko);
+                ReleaseDC(hwnd, hdc);
+            }
+            else if (fBlocking)
+                {
+                    SetCursor(LoadCursor(NULL, IDC_CROSS));
+                    DrawBoxOutline(hwnd, ptBeg, ptEnd, przybornik, lParam);
+ 
+                    ptEnd.x = LOWORD(lParam);
+                    ptEnd.y = HIWORD(lParam);
+ 
+                    DrawBoxOutline(hwnd, ptBeg, ptEnd, przybornik, lParam);
+                }
+        }
+        else
+        {
+            if (fBlocking)
+            {
+                DrawBoxOutline(hwnd, ptBeg, ptEnd, przybornik, lParam);
+ 
+                ReleaseCapture();
+                SetCursor(LoadCursor(NULL, IDC_ARROW));
+ 
+                fBlocking = false;
+            }
+        }
+    }
+        break;
+ 
+    case WM_LBUTTONUP:
+    {
+        if (!SprawdzKolizjePrzybornik(przybornik, lParam))
+        {
+            if (fBlocking)
+            {
+                DrawBoxOutline(hwnd, ptBeg, ptEnd, przybornik, lParam);
+ 
+                ptBoxBeg = ptBeg;
+                ptBoxEnd.x = LOWORD(lParam);
+                ptBoxEnd.y = HIWORD(lParam);
+ 
+                ReleaseCapture();
+                SetCursor(LoadCursor(NULL, IDC_ARROW));
+ 
+                fBlocking = false;
+                fValidBox = true;
+ 
+                InvalidateRect(hwnd, NULL, false);
+            }
+        }
+    }
+        break;
+ 
+    case WM_CHAR:
+    {
+        if (fBlocking & (wParam == '\x1B'))
+        {
+            DrawBoxOutline(hwnd, ptBeg, ptEnd, przybornik, lParam);
+ 
+            ReleaseCapture();
+            SetCursor(LoadCursor(NULL, IDC_ARROW));
+ 
+            fBlocking = false;
+        }
+    }
+        break;
+ 
+    case WM_PAINT:
+    {
+        if (!SprawdzKolizjePrzybornik(przybornik, lParam))
+        {
+            UstawPrzybornik(hwnd);
+            UstawKolory();
+            UstawFigury();
+            hdc = BeginPaint(hwnd, &ps);
+            HBRUSH pudelko, pedzel;
+ 
+            HPEN pen, box;
+            pen = CreatePen(PS_SOLID, 5, color);
+ 
+            pedzel = CreateSolidBrush(RGB(128, 128, 128));
+            pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+ 
+            Rectangle(hdc, przybornik.left, przybornik.top, przybornik.right, przybornik.bottom);
+            SelectObject(hdc, pudelko);
+            DeleteObject(pudelko);
+            DeleteObject(pedzel);
+ 
+ 
+            for (int i = 0; i < COLOURS; i++)
+            {
+                pedzel = CreateSolidBrush(colours[i].color);
+                pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+ 
+                Rectangle(hdc, colours[i].rect.left, colours[i].rect.top, colours[i].rect.right, colours[i].rect.bottom);
+                SelectObject(hdc, pudelko);
+                DeleteObject(pudelko);
+                DeleteObject(pedzel);
+            }
+ 
+            for (int i = 0; i < 9; i++)
+            {
+                pedzel = CreateSolidBrush(RGB(255, 255, 255));
+                pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+ 
+                Rectangle(hdc, tools[i].left, tools[i].top, tools[i].right, tools[i].bottom);
+                SelectObject(hdc, pudelko);
+ 
+                DeleteObject(pudelko);
+                DeleteObject(pedzel);
+            }
+ 
+            pedzel = CreateSolidBrush(RGB(0, 0, 0));
+            pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+ 
+            POINT point[3];
+            point[0].x = tools[0].left + 5;
+            point[0].y = tools[0].top + SQUARE_SIZE - 5;
+ 
+            point[1].x = tools[0].left + SQUARE_SIZE - 5; 
+            point[1].y = tools[0].top + SQUARE_SIZE - 5;
+ 
+            point[2].x = tools[0].left + (SQUARE_SIZE / 2); 
+            point[2].y = tools[0].top + 5;
+            Polygon(hdc, point, 3);
+ 
+            SelectObject(hdc, pudelko);
+            DeleteObject(pudelko);
+            DeleteObject(pedzel);
+ 
+            pedzel = CreateSolidBrush(RGB(255, 255, 255));
+            pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+ 
+            point[0].x = tools[1].left + 5;
+            point[0].y = tools[1].top + SQUARE_SIZE - 5;
+ 
+            point[1].x = tools[1].left + SQUARE_SIZE - 5;
+            point[1].y = tools[1].top + SQUARE_SIZE - 5;
+ 
+            point[2].x = tools[1].left + (SQUARE_SIZE / 2);
+            point[2].y = tools[1].top + 5;
+            Polygon(hdc, point, 3);
+ 
+            SelectObject(hdc, pudelko);
+            DeleteObject(pudelko);
+            DeleteObject(pedzel);
+ 
+            pedzel = CreateSolidBrush(RGB(0, 0, 0));
+            pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+            Ellipse(hdc, tools[2].left + 5, tools[2].top + 5, tools[2].left + SQUARE_SIZE - 5, tools[2].top + SQUARE_SIZE - 5);
+ 
+            SelectObject(hdc, pudelko);
+            Ellipse(hdc, tools[3].left + 5, tools[3].top + 5, tools[3].left + SQUARE_SIZE - 5, tools[3].top + SQUARE_SIZE - 5);
+ 
+            SelectObject(hdc, pedzel);
+            Rectangle(hdc, tools[4].left + 5, tools[4].top + 5, tools[4].left + SQUARE_SIZE - 5, tools[4].top + SQUARE_SIZE - 5);
+            SelectObject(hdc, pudelko);
+ 
+            Rectangle(hdc, tools[5].left + 5, tools[5].top + 5, tools[5].left + SQUARE_SIZE - 5, tools[5].top + SQUARE_SIZE - 5);
+ 
+            SelectObject(hdc, pedzel);
+            Rectangle(hdc, tools[6].left + 5, tools[6].top + 17, tools[6].left + SQUARE_SIZE - 5, tools[6].top + SQUARE_SIZE - 17);
+            SelectObject(hdc, pudelko);
+ 
+            SelectObject(hdc, pedzel);
+            Ellipse(hdc, tools[7].left + 10, tools[7].top + 10, tools[7].left + SQUARE_SIZE - 10, tools[7].top + SQUARE_SIZE - 10);
+            SelectObject(hdc, pudelko);
+ 
+            SelectObject(hdc, pedzel);
+            Rectangle(hdc, tools[8].left + 10, tools[8].top + 10, tools[8].left + SQUARE_SIZE - 10, tools[8].top + SQUARE_SIZE - 10);
+            SelectObject(hdc, pudelko);
+ 
+            DeleteObject(pudelko);
+            DeleteObject(pedzel);
+ 
+            if (fValidBox)
+            {
+                switch (tool)
+                {
+                case FILL_TRIANGLE:
+                {
+                    pedzel = CreateSolidBrush(color);
+                    pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+                    POINT point[3];
+                    point[0].x = ptBoxBeg.x;
+                    point[0].y = ptBoxBeg.y;
+ 
+                    point[1].x = ptBoxEnd.x;
+                    point[1].y = ptBoxBeg.y;
+ 
+                    point[2].x = (ptBoxBeg.x + ptBoxEnd.x) / 2;
+                    point[2].y = ptBoxEnd.y;
+ 
+                    Polygon(hdc, point, 3);
+                    SelectObject(hdc, pedzel);
+                    DeleteObject(pudelko);
+                    DeleteObject(pedzel);
+                }
+                break;
+ 
+                case TRIANGLE:
+                {
+                    box = (HPEN)SelectObject(hdc, pen);
+                    POINT point[3];
+                    point[0].x = ptBoxBeg.x;
+                    point[0].y = ptBoxBeg.y;
+ 
+                    point[1].x = ptBoxEnd.x;
+                    point[1].y = ptBoxBeg.y;
+ 
+                    point[2].x = (ptBoxBeg.x + ptBoxEnd.x) / 2;
+                    point[2].y = ptBoxEnd.y;
+ 
+                    Polygon(hdc, point, 3);
+                }
+                break;
+                case FILL_CIRCLE:
+                    pedzel = CreateSolidBrush(color);
+                    pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+                    Ellipse(hdc, ptBoxBeg.x, ptBoxBeg.y, ptBoxEnd.x, ptBoxEnd.y);
+                    SelectObject(hdc, pedzel);
+                    DeleteObject(pudelko);
+                    DeleteObject(pedzel);
+                    break;
+ 
+                case CIRCLE:
+                    box = (HPEN)SelectObject(hdc, pen);
+                    Ellipse(hdc, ptBoxBeg.x, ptBoxBeg.y, ptBoxEnd.x, ptBoxEnd.y);
+                    DeleteObject(pen);
+                    DeleteObject(box);
+                    break;
+ 
+                case FILL_SQUARE:
+                    pedzel = CreateSolidBrush(color);
+                    pudelko = (HBRUSH)SelectObject(hdc, pedzel);
+                    Rectangle(hdc, ptBoxBeg.x, ptBoxBeg.y, ptBoxEnd.x, ptBoxEnd.y);
+                    SelectObject(hdc, pedzel);
+                    DeleteObject(pudelko);
+                    DeleteObject(pedzel);
+                    break;
+ 
+                case SQUARE:
+                    box = (HPEN)SelectObject(hdc, pen);
+                    Rectangle(hdc, ptBoxBeg.x, ptBoxBeg.y, ptBoxEnd.x, ptBoxEnd.y);
+                    break;
+ 
+                case LINE:
+                {
+                    box = (HPEN)SelectObject(hdc, pen);
+                    MoveToEx(hdc, ptBeg.x, ptBeg.y, &ptBeg);
+                    LineTo(hdc, ptBoxEnd.x, ptBoxEnd.y);
+                }
+                case BRUSH_CIRCLE:
+                    break;
+                case BRUSH_SQUARE:
+                    break;
+                default:
+                    tool = NONE;
+                    break;
+                }
+                SelectObject(hdc, pedzel);
+                DeleteObject(pudelko);
+                DeleteObject(pedzel);
+            }
+            if (fBlocking)
+            {
+                SetROP2(hdc, R2_NOT);
+                SelectObject(hdc, GetStockObject(NULL_BRUSH));
+                Rectangle(hdc, ptBeg.x, ptBeg.y, ptEnd.x, ptEnd.y);
+            }
+            EndPaint(hwnd, &ps);
+        }
+    }
+        break;
+ 
+    case WM_CLOSE:
+    {
+        if (MessageBox(0, TEXT("Czy na pewno chcesz zakończyć działanie aplikacji?"), appName, MB_YESNO) == IDYES)
+            DestroyWindow(hwnd);
+    }
+    break;
+ 
+    case WM_DESTROY:
+        PostQuitMessage(0);
+    break;
+ 
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    UpdateWindow(hwnd);
+    return 0;
+}
+ 
+void DrawBoxOutline(HWND hwnd, POINT ptBeg, POINT ptEnd, RECT rect, LPARAM lParam)
+{
+        HDC hdc;
+        hdc = GetDC(hwnd);
+ 
+        SetROP2(hdc, R2_NOT);
+        SelectObject(hdc, GetStockObject(NULL_BRUSH));
+ 
+        Rectangle(hdc, ptBeg.x, ptBeg.y, ptEnd.x, ptEnd.y);
+        ReleaseDC(hwnd, hdc);
+}
+ 
+void UstawPrzybornik(HWND hwnd) // ustawia przybornik po lewej stronie
+{
+    RECT windowRect;
+    GetClientRect(hwnd, &windowRect);
+ 
+    przybornik.bottom = windowRect.bottom;
+    przybornik.top = windowRect.top;
+    przybornik.right = windowRect.right;
+    przybornik.left = windowRect.right - 100;
+}
+ 
+void UstawFigury() // Ustawia figury pod kolorami
+{
+    int count = 0;
+    int y = 20;
+    for (int i = 0; i < 9; i++)
+    {
+        tools[i].left = colours[10 + count].rect.left;
+        tools[i].top = colours[15].rect.top + SQUARE_SIZE + y;
+        tools[i].bottom = colours[15].rect.bottom + SQUARE_SIZE + y;
+        tools[i].right = colours[10 + count].rect.right;
+ 
+        count++;
+        if (count % 2 == 0)
+        {
+            count = 0;
+            y += (SQUARE_SIZE + 5);
+        }
+    }
+}
+ 
+void UstawKolory()  // Ustawia kolory w przyborniku
+{
+    int x = 0, y = 15;      // Poczatkowy odstep od gory ekranu
+    int count = 0;  // Posluzy do przesuwania sie do kolejnego wiersza
+ 
+    for (int i = 0; i < COLOURS; i++)
+    {
+        x = ((10 + SQUARE_SIZE)* count) + przybornik.left + 10;
+ 
+        colours[i].rect.left = x;
+        colours[i].rect.top = y;
+        colours[i].rect.right = x + SQUARE_SIZE;
+        colours[i].rect.bottom = y + SQUARE_SIZE;
+ 
+        count++;
+        if (count % 2 == 0)
+        {
+            count = 0;
+            y += (SQUARE_SIZE + 5);
+        }
+    }
+}
+ 
+void JakieKolory() // Tworzymy palete kolorow
+{
+    colours[0].color = RGB(0, 0, 0);
+    colours[1].color = RGB(150, 150, 150);
+    colours[2].color = RGB(150, 0, 0);
+    colours[3].color = RGB(255, 0, 0);
+    colours[4].color = RGB(0, 150, 0);
+    colours[5].color = RGB(0, 255, 0);
+    colours[6].color = RGB(150, 150, 0);
+    colours[7].color = RGB(255, 255, 0);
+    colours[8].color = RGB(0, 0, 150);
+    colours[9].color = RGB(0, 0, 255);
+    colours[10].color = RGB(150, 0, 150);
+    colours[11].color = RGB(255, 0, 255);
+    colours[12].color = RGB(0, 150, 150);
+    colours[13].color = RGB(0, 255, 255);
+    colours[14].color = RGB(100, 100, 100);
+    colours[15].color = RGB(255, 255, 255);
+}
+ 
+bool SprawdzKolizjePrzybornik(RECT rect, LPARAM lParam) //wylaczy obszar przybornika z rysowania
+{
+    DWORD mouseX = LOWORD(lParam);
+    DWORD mouseY = HIWORD(lParam);
+    if (tool == BRUSH_CIRCLE || tool == BRUSH_SQUARE)
+    {
+        if ((mouseX > rect.left - (BRUSH_SIZE / 2) && mouseX < rect.right + (BRUSH_SIZE / 2)) || (mouseY < rect.bottom + (BRUSH_SIZE / 2) && mouseY > rect.top - (BRUSH_SIZE / 2)))
+            return true;
+    }
+    if (mouseX > rect.left && mouseX < rect.right && mouseY < rect.bottom && mouseY > rect.top)
+        return true;
+    return false;
+}
+ 
+bool SprawdzKolizjeKwadraty(RECT rect, LPARAM lParam) //wylaczy obszar przybornika z rysowania
+{
+    DWORD mouseX = LOWORD(lParam);
+    DWORD mouseY = HIWORD(lParam);
+ 
+    if (mouseX > rect.left  && mouseX < rect.right && mouseY < rect.bottom && mouseY > rect.top)
+        return true;
+    return false;
+}

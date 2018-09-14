@@ -1,0 +1,308 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define SCREEN_WIDTH 600
+#define SCREEN_HEIGHT 600
+#define SCALE 20
+#define TIMER_ID 1
+#define MAP_X 30
+#define MAP_Y 30
+#define START_X MAP_X/2
+#define START_Y MAP_Y/2
+
+#include <windows.h>
+#include <deque>
+
+TCHAR className[] = TEXT("Class");
+TCHAR appName[] = TEXT("SNAKE");
+
+HWND hwnd;
+MSG msg;
+
+enum DIRECTION { UP, RIGHT, DOWN, LEFT, STOP };
+DIRECTION direction = STOP;
+
+COLORREF snakeColor = RGB(0, 192, 0);
+COLORREF foodColor = RGB(192, 0, 0);
+
+struct Body {
+	DIRECTION direction;
+	DIRECTION saveOldDirection;
+	UINT x;
+	UINT y;
+};
+
+std::deque<Body> body;
+
+void initHead() {
+	Body b;
+
+	b.x = START_X;
+	b.y = START_Y;
+	b.direction = b.saveOldDirection = direction;
+
+	body.push_back(b);
+}
+
+void initFood(UINT& foodX, UINT& foodY) {
+	foodX = rand() % MAP_X;
+	foodY = rand() % MAP_Y;
+}
+
+void initBrushesAndPens(HBRUSH& snakeBrush, HBRUSH& foodBrush, HBRUSH& blackBrush, HPEN& snakePen, HPEN& foodPen, HPEN& blackPen) {
+	snakeBrush = CreateSolidBrush(snakeColor);
+	snakePen = CreatePen(PS_SOLID, 1, snakeColor);
+
+	foodBrush = CreateSolidBrush(foodColor);
+	foodPen = CreatePen(PS_SOLID, 1, foodColor);
+
+	blackBrush = CreateSolidBrush(RGB(0, 0, 0));
+	blackPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+}
+
+void initNextSegment() {
+	DIRECTION direction;
+	UINT x = 0, y = 0;
+
+	if (body.empty()) {
+		direction = body[0].direction;
+		x = body[0].x;
+		y = body[0].y;
+	}
+	else {
+		direction = body.at(body.size() - 1).direction;
+		x = body[body.size() - 1].x;
+		y = body[body.size() - 1].y;
+	}
+
+	switch (direction) {
+	case UP:	y++;	break;
+
+	case RIGHT:	x--;	break;
+
+	case DOWN:	y--;	break;
+
+	case LEFT:	x++;	break;
+	}
+
+	Body b;
+	b.direction = b.saveOldDirection = direction;
+	b.x = x;
+	b.y = y;
+
+	body.push_back(b);
+}
+
+void movePoint(Body& body) {
+	switch (body.direction) {
+	case UP:	body.y--;	break;
+
+	case RIGHT:	body.x++;	break;
+
+	case DOWN:	body.y++;	break;
+
+	case LEFT:	body.x--;	break;
+	}
+}
+
+void drawMapLines(const HDC hdc) {
+	for (UINT i = 0; i <= MAP_X; i++) {
+		MoveToEx(hdc, i * SCALE, 0, NULL);
+		LineTo(hdc, i * SCALE, MAP_Y * SCALE);
+	}
+
+	for (UINT i = 0; i <= MAP_Y; i++) {
+		MoveToEx(hdc, 0, i * SCALE, NULL);
+		LineTo(hdc, MAP_X * SCALE, i * SCALE);
+	}
+}
+
+void drawPauseInformation(bool pause) {
+	if (pause) {
+		HDC hdc = GetDC(hwnd);
+
+		const int bufSize = 64;
+		TCHAR buf[bufSize];
+		_swprintf(buf, TEXT("Pałza skurwisyny"), bufSize);
+
+		TextOut(hdc, (MAP_X * SCALE) / 2, (MAP_Y * SCALE) / 2, buf, wcslen(buf));
+
+		ReleaseDC(hwnd, hdc);
+	}
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static RECT clientRect;
+	static UINT foodX, foodY;
+	static PAINTSTRUCT ps;
+	static HBRUSH snakeBrush, foodBrush, blackBrush;
+	static HPEN snakePen, foodPen, blackPen;
+	static bool pause = false;
+
+	switch (msg) {
+	case WM_CREATE: {
+		SetTimer(hwnd, TIMER_ID, 50, 0);
+		initHead();
+		initFood(foodX, foodY);
+		initBrushesAndPens(snakeBrush, foodBrush, blackBrush, snakePen, foodPen, blackPen);
+		GetClientRect(hwnd, &clientRect);
+	}break;
+
+	case WM_SIZE:
+		GetClientRect(hwnd, &clientRect);
+		InvalidateRect(hwnd, NULL, 1);
+		break;
+
+	case WM_TIMER: {
+		body[0].direction = body[0].saveOldDirection = direction;
+
+		if (!pause && direction != STOP) {
+			if (body.size() > 0)
+				for (std::deque<Body>::iterator it = body.begin(); it != body.end(); ++it)
+					movePoint(*it);
+
+			if (body.size() > 0)
+				for (std::deque<Body>::iterator it = body.begin() + 1; it != body.end(); ++it) {
+					it->saveOldDirection = it->direction;
+					it->direction = (it - 1)->saveOldDirection;
+				}
+
+			if (body[0].x == foodX && body[0].y == foodY) {
+				initNextSegment();
+				initFood(foodX, foodY);
+			}
+
+			if (body.size() > 0)
+				for (std::deque<Body>::iterator it = body.begin() + 1; it != body.end(); ++it)
+					if (body[0].x == it->x && body[0].y == it->y) {
+						body.clear();
+						initHead();
+						break;
+					}
+
+			if (body[0].x < 0 || body[0].x >= MAP_X || body[0].y < 0 || body[0].y >= MAP_Y) {
+				body.clear();
+				direction = STOP;
+				initHead();
+			}
+
+			InvalidateRect(hwnd, NULL, 1);
+		}
+	}break;
+
+	case WM_PAINT: {
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		SetMapMode(hdc, MM_ANISOTROPIC);
+		SetViewportExtEx(hdc, clientRect.right, clientRect.bottom, NULL);
+		SetViewportOrgEx(hdc, 0, 0, NULL);
+		SetWindowExtEx(hdc, MAP_X * SCALE, MAP_Y * SCALE, NULL);
+		SetWindowOrgEx(hdc, 0, 0, NULL);
+
+		SelectObject(hdc, foodBrush);
+		SelectObject(hdc, foodPen);
+
+		Rectangle(hdc, foodX * SCALE, foodY * SCALE, (foodX + 1) * SCALE, (foodY + 1) * SCALE);
+
+		SelectObject(hdc, snakeBrush);
+		SelectObject(hdc, snakePen);
+
+		if (body.size() > 0)
+			for (std::deque<Body>::iterator it = body.begin(); it != body.end(); ++it)
+				Rectangle(hdc, it->x * SCALE, it->y * SCALE, (it->x + 1) * SCALE, (it->y + 1) * SCALE);
+
+		SelectObject(hdc, blackBrush);
+		SelectObject(hdc, blackPen);
+
+		drawMapLines(hdc);
+
+		EndPaint(hwnd, &ps);
+	}break;
+
+	case WM_KEYDOWN:
+		switch ((int)wParam) {
+		case VK_UP:
+			if (direction != DOWN)
+				direction = UP;
+			break;
+
+		case VK_DOWN:
+			if (direction != UP)
+				direction = DOWN;
+			break;
+
+		case VK_RIGHT:
+			if (direction != LEFT)
+				direction = RIGHT;
+			break;
+
+		case VK_LEFT:
+			if (direction != RIGHT)
+				direction = LEFT;
+			break;
+
+		case 0x50:
+			pause = !pause;
+			drawPauseInformation(pause);
+			break;
+		}
+		break;
+
+	case WM_CLOSE:	DestroyWindow(hwnd);	break;
+
+	case WM_DESTROY: {
+		DeleteObject(foodBrush);
+		DeleteObject(foodPen);
+		DeleteObject(blackBrush);
+		DeleteObject(blackPen);
+		DeleteObject(snakeBrush);
+		DeleteObject(snakePen);
+
+		KillTimer(hwnd, TIMER_ID);
+		PostQuitMessage(0);
+	}break;
+
+	default:	return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 3);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = className;
+	wc.lpszMenuName = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	if (RegisterClassEx(&wc) == 0) {
+		MessageBox(NULL, TEXT("Some problem with RegisterClassEx"), className, MB_OK);
+		return 1;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE, className, appName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, hInstance, 0);
+	if (hwnd == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx"), className, MB_OK);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(className, hInstance);
+
+	return msg.wParam;
+}

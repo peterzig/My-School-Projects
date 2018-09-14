@@ -1,0 +1,23 @@
+// ConsoleApplication3.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include "conio.h"
+
+
+int main()
+{
+	int a, b, x;
+	float y;
+	printf("Witam w kalkulatorze, wcisnij dowolny klawisz... \n");
+	printf("Podaj pierwsza liczbe: \n");
+	scanf("%d", &a);
+	printf("Podaj druga liczbe: \n");
+	scanf("%d", &b);
+	printf("a + b= %d\n", x, x = a + b);
+	printf("a - b= %d\n", x, x = a - b);
+	printf("a * b= %d\n", x, x = a*b);
+	printf("a / b= %f\n", y, y = 1.0*a / b);
+	_getch();
+	return 0;
+}

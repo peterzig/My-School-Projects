@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <float.h>
+
+double *stworzTabliceJednowymiarowa(int n) {
+	double *tab = (double *)malloc(sizeof(double) * n);
+	return tab;
+}
+int main() {
+	int n, m;
+	double min = DBL_MAX, max = DBL_MIN; //zadeklarowanie min z wartoscia maksymalna do double i min z minimalna do doubla
+	int minIndeks = 0, maxIndeks = 0;
+
+	do {
+		printf("Podaj liczbe elementow: ");
+		scanf("%d", &n);
+	} while (n < 1); //pobieranie od usera liczby elementow tak dlugo az w koncu poda wieksza od 0
+
+	double *tab1 = stworzTabliceJednowymiarowa(n);
+
+	for (int i = 0; i < n; ++i) {
+		printf("T[%d] = ", i + 1);
+		scanf("%lf", &tab1[i]);
+
+		//odrazu przy wprowadzaniu sprawdzamy czy podana liczba jest minimalna lub maksymalna
+		if (tab1[i] < min) {
+			min = tab1[i];
+			minIndeks = i;
+		}
+		if (tab1[i] > max) {
+			max = tab1[i];
+			maxIndeks = i;
+		}
+	}
+
+	printf("Wartosc najmniejsza = %lf na pozycji %d.\n", min, minIndeks + 1);
+	printf("Wartosc najwieksza = %lf na pozycji %d.\n", max, maxIndeks + 1);
+
+	free(tab1);
+	_getch();
+	return 0;
+}

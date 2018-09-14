@@ -1,0 +1,107 @@
+// [AISD] Lista Dwukierunkowa.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#include <malloc.h>
+
+struct Lista
+{
+	float data;
+	Lista *prev;
+	Lista *next;
+};
+
+void Dodaj(Lista **lista, float wartosc)
+{
+	Lista *L = (Lista*)malloc(sizeof(Lista));
+
+	if (L != NULL)
+	{
+		L->data = wartosc;
+		L->prev = 0;
+		L->next = 0;
+
+		if (*lista == 0)
+		{
+			*lista = L;
+		}
+		else
+		{
+			Lista *kopia = *lista;
+			while (kopia->next != 0) kopia = kopia->next;
+			kopia->next = L;
+			L->prev = kopia;
+		}
+	}
+}
+
+int Rozmiar(Lista *L)
+{
+	if (L != NULL)
+	{
+		int r = 1;
+		while (L->next != 0)
+		{
+			L = L->next;
+			r++;
+		}
+		return r;
+	}
+	return 0;
+}
+
+float Pobierz(Lista *L)
+{
+	if (L != 0)
+	{
+		return L->data;
+	}
+	return 0;
+}
+
+int main()
+{
+	Lista *lista = NULL;
+	Lista *X = NULL;
+	unsigned int element;
+
+	Dodaj(&lista, 5.2);
+	Dodaj(&lista, 6.2);
+	Dodaj(&lista, 7.2);
+	Dodaj(&lista, 8.2);
+	Dodaj(&lista, 9.2);
+
+	printf("Na liscie znajduje sie %i elementow.\n", Rozmiar(lista));
+	printf("Obecny element listy wskazuje na -> %f\n\n", lista->data);
+
+	element = 1;
+	for (X = lista; X != NULL; X = X->next)
+	{
+		printf("Element nr %i: %f\n", element, Pobierz(X));
+		++element;
+	}
+	printf("Obecny element listy wskazuje na -> %f\n\n", lista->data);
+
+	for (unsigned int i = 0; lista != NULL; lista = lista->next, i++)
+	{
+		printf("Element nr %i: %f\n", i + 1, Pobierz(lista));
+
+		if (lista->next == NULL)
+		{
+			break;
+		}
+	}
+	for (unsigned int i = 10; lista != NULL; lista = lista->prev, i--)
+	{
+		printf("Element nr %i: %f\n", i + 1, Pobierz(lista));
+
+		if (lista->prev == NULL)
+		{
+			break;
+		}
+		printf("\n Obecny element wskazuje na -> %f\n\n", lista->data);
+	}
+	_getch();
+    return 0;
+}

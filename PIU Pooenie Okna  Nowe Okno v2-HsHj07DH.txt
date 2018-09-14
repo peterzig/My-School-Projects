@@ -1,0 +1,148 @@
+#include <Windows.h>
+#include <stdio.h>
+//-------Zmienne i funkcje globalne.
+//-------Zmienne globalne.
+TCHAR EndCaption[] = TEXT("Zamykanie aplikacji");
+TCHAR EndText[] = TEXT("Czy chcesz zamknąć aplikację?");
+TCHAR WindowText[] = TEXT("Nowa nazwa okna");
+TCHAR Class_Name[] = TEXT("KLASA");
+
+HWND NoweOkno;
+
+int windowCount = 0;
+RECT rect;
+int W, S;
+
+//Komunikaty
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	switch (msg)
+	{
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		hdc = BeginPaint(hwnd, &ps);
+		GetClientRect(hwnd, &rect);
+		
+		const size_t text_size = 64;
+
+		TCHAR text[64];
+		TCHAR text2[64];
+
+
+		swprintf(text, text_size, TEXT("Rozmiar okna: %i, %i"), rect.right, rect.bottom);
+		swprintf(text2, text_size, TEXT("Pozycja: %i x %i "), W, S);
+
+		SetTextColor(hdc, RGB(0, 0, 255));
+		SetBkColor(hdc, RGB(255,255, 255));
+
+		TextOut(hdc, 5, 5, text, wcslen(text));
+		TextOut(hdc, 5, 50, text2, wcslen(text2));
+
+
+
+		//DrawText(hdc, TEXT("TEKST NA ŚRODKU NA GÓRZE"), -1, &rect, DT_SINGLELINE | DT_CENTER);
+		//DrawText(hdc, TEXT("TEKST Z LEWEJ STRONY OKNA"), -1, &rect, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+		//DrawText(hdc, TEXT("TEKST NA ŚRODKU OKNA"), -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+		//DrawText(hdc, TEXT("TEKST Z PRAWEJ STRONY OKNA"), -1, &rect, DT_SINGLELINE | DT_RIGHT | DT_VCENTER);
+		//DrawText(hdc, TEXT("TEKST NA ŚRODKU NA DOLE"), -1, &rect, DT_SINGLELINE | DT_CENTER | DT_BOTTOM);
+		EndPaint(hwnd, &ps);
+		break;
+	}
+
+	case WM_LBUTTONDOWN:
+		hdc = GetDC(hwnd);
+		NoweOkno = CreateWindowEx(0, Class_Name, TEXT("Nowe Okno"), WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, 0, 0, GetModuleHandle(0), 0);
+		ShowWindow(NoweOkno, SW_SHOW);
+		UpdateWindow(NoweOkno);
+		//SetWindowText(hwnd, WindowText);
+		ReleaseDC(hwnd, hdc);
+		break;
+
+	case WM_CREATE:
+		++windowCount;
+		UpdateWindow(hwnd);
+		break;
+
+	case WM_SIZE:
+		InvalidateRect(hwnd, &rect, 1);
+		break;
+
+	case WM_MOVE:
+		InvalidateRect(hwnd, &rect, 1);
+		W = LOWORD(lParam);
+		S = HIWORD(lParam);
+		break;
+
+	case WM_CLOSE:
+		if (MessageBox(hwnd, EndText, EndCaption, MB_YESNO) == IDYES) {
+			windowCount--;
+			DestroyWindow(hwnd);
+		}
+		break;
+
+	case WM_DESTROY:
+		if (windowCount == 0)
+		{
+			MessageBox(0, TEXT("Koniec."), TEXT(""), MB_OK);
+			PostQuitMessage(0);
+		}
+		break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+		break;
+	}
+
+	return 0;
+}
+
+//Main
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR ilCmdLine, int nCmdShow)
+{
+	WNDCLASSEX window;
+	HWND okno1 = NULL;
+	HWND okno2 = NULL;
+	MSG msg;
+	TCHAR Title[] = TEXT("Typowa Aplikacja WinAPI");
+
+	window.cbClsExtra = NULL;
+	window.cbSize = sizeof(WNDCLASSEX);
+	window.cbWndExtra = NULL;
+	window.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	window.hCursor = LoadCursor(NULL, IDC_ARROW);
+	window.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	window.hIconSm = NULL;
+	window.hInstance = hInstance;
+	window.lpfnWndProc = WndProc;
+	window.lpszClassName = Class_Name;
+	window.lpszMenuName = 0;
+	window.style = CS_VREDRAW | CS_HREDRAW;
+
+	if (!RegisterClassEx(&window))
+	{
+		MessageBox(NULL, TEXT("Nie udało się zarejestrować klasy okna!"), Class_Name, MB_ICONERROR);
+		return 0;
+	}
+
+	okno1 = ((CreateWindowEx(WS_EX_WINDOWEDGE, Class_Name, Title,
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 500, 300, 0, 0, hInstance, NULL)));
+	ShowWindow(okno1, nCmdShow);
+	UpdateWindow(okno1);
+
+	okno2 = ((CreateWindowEx(WS_EX_WINDOWEDGE, Class_Name, Title,
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 500, 300, 0, 0, hInstance, NULL)));
+
+	ShowWindow(okno2, nCmdShow);
+	UpdateWindow(okno2);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(Class_Name, hInstance);
+	return msg.wParam;
+}

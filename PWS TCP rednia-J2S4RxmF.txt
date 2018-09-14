@@ -1,0 +1,74 @@
+#include "stdafx.h"
+#include <winsock.h>
+#include <conio.h>
+
+#pragma comment(lib,"ws2_32.lib")
+enum {ESC = 27, SPACE = 32};
+
+void main()
+{
+	WSADATA wsadata;
+	if( WSAStartup(MAKEWORD(2,2), &wsadata) != 0) 
+	{
+		printf("WSAStartup failed with error: %d\n", WSAGetLastError());
+		_getch();
+        return;
+	}
+
+	SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (s == INVALID_SOCKET)
+	{
+		WSACleanup();
+		printf("Creating socket failed with error: %d\n", WSAGetLastError());
+		_getch();
+        return;
+	}
+	sockaddr_in serwer;
+	serwer.sin_family = AF_INET;
+	serwer.sin_port = htons(7708);
+	serwer.sin_addr.s_addr = inet_addr("127.1.0.0");
+
+	while(true)
+	{
+		printf("Dowolny klawisz - kontynuowanie programu\nEsc - koniec programu\n\n");
+		int wybor = _getch();
+
+		if( wybor = ESC)
+			break;
+
+		if(connect(s, (sockaddr*) &serwer, sizeof(serwer)) < 0)
+		{
+			printf("Polaczenie z serweem nieudane!\n");
+			_getch();
+			continue;
+		}
+		send(s, "AVRGE", sizeof("AVRGE"), 0);
+
+		while (true)
+		{
+			float liczba1, liczba2, srednia;
+			char kod = 0xDD;
+			int licznik = 0;
+
+			recv(s, (char*)&liczba1, sizeof(float), 0);
+			recv(s, (char*)&liczba2, sizeof(float), 0);
+
+			srednia = (liczba1 + liczba2) / 2;
+			send(s, (char*)&srednia, sizeof(float), 0);
+
+			printf("Otrzymane liczby: %.2f i %.2f\nSrednia liczb: %.2f\n\n", liczba1, liczba2, srednia);
+			if (++licznik % 10 == 0)
+			{
+				if (send(s, (char*)&kod, sizeof(char), 0) == SOCKET_ERROR)
+					break;
+				printf("Przesylanie kodu 0xDD\n\n");
+			}
+		}
+	}
+
+	printf("Konczenie dzialania programu\n");
+	shutdown(s, 2);
+	closesocket(s);
+	WSACleanup();
+	getch();
+}

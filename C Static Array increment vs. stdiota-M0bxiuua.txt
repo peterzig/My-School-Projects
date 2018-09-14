@@ -1,0 +1,26 @@
+#include <iostream>
+#include <string>
+#include <numeric>
+
+using namespace std;
+
+void f(int *p, size_t l)
+{
+    for(size_t i = 0; i<l; ++i)
+    {
+        p[i] = i;
+        printf("%d", p[i]);
+    }
+}
+
+int main()
+{
+    
+  int my_array[5];
+  //f(my_array, 5);
+  iota(my_array,my_array +5, 0);
+  for(int i = 0; i < 5; ++i)
+  {
+      printf("%d\n",my_array[i]);
+  }
+}

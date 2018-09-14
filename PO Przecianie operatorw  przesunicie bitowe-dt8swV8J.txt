@@ -1,0 +1,192 @@
+#include <stdio.h>
+#include <conio.h>
+#include <malloc.h>
+#include <string.h>
+
+// operator >> ma przesuwać nasz tekst o określoną ilość miejsc, ma się odbywać rotacja w kółko
+// wyświatlane ma być 10 ostatnich liter napisu
+ 
+class String
+{
+        public:
+                String(const int);
+                ~String();
+ 
+                String& operator += (const char *str);
+                String& operator >> (int x);
+                String& operator << (int x);
+ 
+                bool operator == (const String& str) const;
+                bool operator != (const String& str) const;
+ 
+                char* getString() const;
+ 
+        private:
+                char *string;
+                unsigned int position, n;
+};
+ 
+String::String(const int n = 64)
+{
+        this->string = NULL;
+        this->n = 0;
+        this->position = 0;
+        if(n > 0)
+        {
+                this->string = (char*)malloc((n+1)*sizeof(char));
+                if(this->string)
+                {
+                        this->n = n;
+                        for(unsigned int i = 0; i < n+1; i++)
+                        {
+                                if(n == i)
+                                {
+                                        this->string[n] = '\0';
+                                }
+                                else
+                                {
+                                        this->string[i] = ' ';
+                                }
+                        }
+                }
+        }
+}
+ 
+String::~String()
+{
+        if(string != NULL)
+        {
+                free(string);
+        }
+}
+ 
+String& String::operator += (const char *str)
+{
+        if(position != n)
+        {
+                unsigned int size = strlen(str);
+                if(position + size < n)
+                {
+                        for(unsigned int i = position, x = 0; i < size + position; i++, x++)
+                        {
+                                string[i] = str[x];
+                        }
+                        position += size;
+                }
+                else
+                {
+                        unsigned int max = size - (n - position);
+                        for(unsigned int i = position; i < n; i++)
+                        {
+                                if(str[max] == '\0')
+                                        break;
+ 
+                                string[i] = str[max];
+                                max++;
+                        }
+                        position = n;
+                }
+        }
+        return *this;
+}
+ 
+bool String::operator == (const String& str) const
+{
+        return (strcmp(this->string, str.string) != 0) ? false : true;
+}
+ 
+bool String::operator != (const String& str) const
+{
+        return (strcmp(this->string, str.string) == 0) ? false : true;
+}
+ 
+String& String::operator >> (int x)
+{
+        if(x > 0)
+        {
+                while(x > 0)
+                {
+                        char copy = string[n-1];
+ 
+                        for(unsigned int i = n-1; i > 0; i--)
+                        {
+                                string[i] = string[i-1];
+                        }
+                        string[0] = copy;
+                        --x;
+                }
+        }
+        return *this;
+}
+ 
+String& String::operator << (int x)
+{
+        if(x > 0)
+        {
+                while(x > 0)
+                {
+                        char copy = string[0];
+ 
+                        for(unsigned int i = 0; i < n-1; i++)
+                        {
+                                string[i] = string[i+1];
+                        }
+                        string[n-1] = copy;
+                        --x;
+                }
+        }
+        return *this;
+}
+ 
+char* String::getString() const
+{
+        return string;
+}
+ 
+int main()
+{
+        String Wiersz1;
+        String Wiersz2(64);
+ 
+        printf("Wiersz1: %s \n", Wiersz1.getString());
+        printf("Wiersz2: %s \n\n", Wiersz2.getString());
+ 
+        Wiersz1 += "To jest pierwszy wiersz";
+        Wiersz2 += "To jest pierwszy wiersz";
+ 
+        printf("Wiersz1: %s \n", Wiersz1.getString());
+        printf("Wiersz2: %s \n", Wiersz2.getString());
+ 
+        if(Wiersz1 == Wiersz2)
+        {
+                printf("Wiersze sa identyczne. \n\n");
+        }
+ 
+        Wiersz2 += ". To jednak drugi!";
+        printf("Wiersz1: %s \n", Wiersz1.getString());
+        printf("Wiersz2: %s \n", Wiersz2.getString());
+ 
+        if(Wiersz1 != Wiersz2)
+        {
+                printf("Wiersze sa rozne od siebie. \n\n");
+        }
+ 
+        Wiersz2 += " I to wszystko co wiemy.";
+        printf("Wiersz1: %s \n", Wiersz1.getString());
+        printf("Wiersz2: %s \n\n", Wiersz2.getString()); // W przypadku braku miejsca mialo liczyc od konca, wiec wywalamy z poczatku
+ 
+        Wiersz1 >> (5);
+        Wiersz2 >> (5);
+ 
+        printf("Wiersz1: %s \n", Wiersz1.getString());
+        printf("Wiersz2: %s \n", Wiersz2.getString());
+ 
+        Wiersz1 << (2);
+        Wiersz2 << (2);
+ 
+        printf("Wiersz1: %s \n", Wiersz1.getString());
+        printf("Wiersz2: %s \n", Wiersz2.getString());
+ 
+        _getch();
+        return 0;
+}

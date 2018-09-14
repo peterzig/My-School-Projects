@@ -1,0 +1,6 @@
+Your access token for Magic Mirror is: 021d3b64df8aad481532303b5597646da525e2c6a66b0a12486d4cb539a4
+
+Client ID: 1a2b5acb4eb84cf72ea5
+Client Secret: 70da4736fcab6a8c5620fca0f0bd9b4ddd06753a968afc820fb06a877f21
+App URL: https://www.wunderlist.com/webapp#/lists/274691776
+Auth Callback URL: https://www.wunderlist.com/webapp#/lists/274691776

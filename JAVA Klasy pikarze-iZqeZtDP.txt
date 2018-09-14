@@ -1,0 +1,131 @@
+/////////////////////Football.java/////////////////////////////
+
+package football;
+
+public class Football {
+    
+    public static void main(String[] args) {
+ 
+        Gracz player1 = new Gracz("Jakub","Błaszczykowski",23,"Borrusia");
+        player1.UstawWartosc(200000000);
+        player1.Wyswietl();
+        
+        Gracz player2 = new Gracz("Jamie","Francis",19,"Bayern");
+        player2.UstawWartosc(21321230);
+        player2.Wyswietl();
+        
+        Gracz player3 = new Gracz("Robert","Lewandowski",27,"Borrusia");
+        player3.UstawWartosc(4000000);
+        player3.Wyswietl();
+    
+        Sedzia kalosz = new Sedzia("Krzysztof", "Kulik", 20);
+        kalosz.KolejnaCzerwona();
+        kalosz.Wyswietl();
+        
+    }
+}
+
+/////////////////////Zawodnik.java//////////////////////////
+
+package football;
+
+public abstract class Zawodnik {
+        String firstName;
+        String lastName;
+        int age;
+        
+        public Zawodnik(String firstName, String lastName, int age){
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.age = age;
+        }
+        
+        public String Imie(){
+            return firstName;
+        }
+        
+        public String Nazwisko(){
+            return lastName;
+        }
+        
+        public int Wiek(){
+            return age;
+        }
+        
+        public abstract void Wyswietl();
+}
+
+
+/////////////////////////////Gracz.java////////////////////////////////////
+
+package football;
+
+
+public class Gracz extends Zawodnik{
+    String clubName;
+    int netWorth;
+    
+    public Gracz(String firstName, String lastName, int age, String clubName){
+        super(firstName,lastName,age);
+        this.clubName = clubName;
+        this.netWorth = 0;
+    }
+    
+    public String Klub(){
+        return clubName;
+    }
+    
+    public void ZmienKlub(String clubName){
+        this.clubName = clubName;
+    }
+    
+    public int Wartosc(){
+        return netWorth;
+    }
+    
+    public void UstawWartosc(int netWorth){
+        this.netWorth = netWorth;
+    }
+    
+    @Override public void Wyswietl(){
+        System.out.println("Imię: "+firstName+ "\nNazwisko: "+lastName+"\nWiek: " + age + "\nKlub: " +clubName+ "\nWartość :  €" +netWorth+"\n");
+    }
+}
+
+
+///////////////////////Sedzia.java//////////////////////
+
+package football;
+
+public class Sedzia extends Zawodnik{
+    int yellowCard;
+    int redCard;
+    
+    public Sedzia(String firstName, String lastName, int age){
+        super(firstName,lastName,age);
+        yellowCard = 0;
+        redCard = 0;
+    }
+    
+    public int IleZoltych(){
+        return yellowCard;
+    }
+    
+    public int IleCzerwonych(){
+        return redCard;
+    }
+    
+    public void KolejnaZolta(){
+        yellowCard++;
+    }
+    
+    public void KolejnaCzerwona(){
+        redCard++;
+    }
+    
+    @Override public void Wyswietl(){
+        System.out.println("Imię: "+firstName+ "\nNazwisko: "+lastName+"\nWiek: " + age + "\nZółte kartki: " +yellowCard+ "\nCzerwone kartki: " +redCard+"\n");
+    }
+}
+
+//////////////////////////////////////////////////////////////

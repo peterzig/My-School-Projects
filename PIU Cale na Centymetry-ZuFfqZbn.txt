@@ -1,0 +1,160 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define SCREEN_WIDTH 700
+#define SCREEN_HEIGHT 600
+#define TIMER_ID 1
+#define BUFF_SIZE 64
+
+#include <windows.h>
+#include <tchar.h>
+
+TCHAR className[] = TEXT("Class");
+TCHAR appName[] = TEXT("Przelicznik jednostek");
+
+HWND hwnd, valueTextField, resultTextField, inchRadioButton, centyRadioButton;
+MSG msg;
+
+RECT getLocalCoordinates() {
+	RECT Rect;
+	GetWindowRect(hwnd, &Rect);
+	MapWindowPoints(HWND_DESKTOP, GetParent(hwnd), (LPPOINT)&Rect, 2);
+	return Rect;
+}
+
+void SetMoveWindow(const RECT clientRect) {
+	MoveWindow(valueTextField, clientRect.right / 3, clientRect.bottom / 2.5, clientRect.right / 7, clientRect.bottom / 20, 1);
+	MoveWindow(resultTextField, clientRect.right / 2, clientRect.bottom / 2.5, clientRect.right / 7, clientRect.bottom / 20, 1);
+	MoveWindow(inchRadioButton, clientRect.right / 3, clientRect.bottom / 2, clientRect.right / 7, clientRect.bottom / 20, 1);
+	MoveWindow(centyRadioButton, clientRect.right / 2, clientRect.bottom / 2, clientRect.right / 7, clientRect.bottom / 20, 1);
+
+	if (clientRect.right <= 500) {
+		RECT rect = getLocalCoordinates();
+
+		MoveWindow(hwnd, rect.left, rect.top, 501, rect.bottom - rect.top, 1);
+	}
+
+	if (clientRect.bottom <= 500) {
+		RECT rect = getLocalCoordinates();
+
+		MoveWindow(hwnd, rect.left, rect.top, rect.right - rect.left, 501, 1);
+	}
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static RECT clientRect;
+	static bool operation = false;
+
+	switch (msg) {
+	case WM_CREATE: {
+		SetTimer(hwnd, 100, TIMER_ID, NULL);
+		GetClientRect(hwnd, &clientRect);
+		SetMoveWindow(clientRect);
+	}break;
+
+	case WM_SIZE: {
+		GetClientRect(hwnd, &clientRect);
+		SetMoveWindow(clientRect);
+	}break;
+
+	case WM_COMMAND:
+		if ((HWND)lParam == inchRadioButton)
+			operation = true;
+		else if ((HWND)lParam == centyRadioButton)
+			operation = false;
+		break;
+
+	case WM_TIMER: {
+		TCHAR buf[BUFF_SIZE];
+		GetWindowText(valueTextField, buf, BUFF_SIZE);
+
+		if (wcslen(buf) < 1)
+			_swprintf(buf, TEXT(""));
+
+		if (_wtof(buf))
+			if (operation)
+				_swprintf(buf, TEXT("%f"), _wtof(buf) * 2.54f);
+			else
+				_swprintf(buf, TEXT("%f"), _wtof(buf) / 2.54f);
+
+		SetWindowText(resultTextField, buf);
+	}break;
+
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	case WM_DESTROY: {
+		KillTimer(hwnd, TIMER_ID);
+		PostQuitMessage(0);
+	}break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = className;
+	wc.lpszMenuName = NULL;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+
+	if (RegisterClassEx(&wc) == 0) {
+		MessageBox(NULL, TEXT("Some problem with RegisterClassEx"), className, MB_OK);
+		return 1;
+	}
+
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_CLIENTEDGE, className, appName, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, hInstance, 0);
+	if (hwnd == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by hwnd"), className, MB_OK);
+		return 1;
+	}
+
+	valueTextField = CreateWindowEx(0, TEXT("EDIT"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 0, 0, hwnd, NULL, hInstance, 0);
+	if (valueTextField == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by valueTextField"), className, MB_OK);
+		return 1;
+	}
+
+	resultTextField = CreateWindowEx(0, TEXT("STATIC"), NULL, WS_CHILD | WS_VISIBLE | WS_BORDER, 0, 0, 0, 0, hwnd, NULL, hInstance, 0);
+	if (resultTextField == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by resultTextField"), className, MB_OK);
+		return 1;
+	}
+
+	inchRadioButton = CreateWindowEx(0, TEXT("BUTTON"), TEXT("cal -> cm"), WS_CHILD | WS_VISIBLE | WS_BORDER | BS_AUTORADIOBUTTON, 0, 0, 0, 0, hwnd, NULL, hInstance, 0);
+	if (inchRadioButton == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by inchRadioButton"), className, MB_OK);
+		return 1;
+	}
+
+	centyRadioButton = CreateWindowEx(0, TEXT("BUTTON"), TEXT("cm -> cal"), WS_CHILD | WS_VISIBLE | WS_BORDER | BST_CHECKED | BS_AUTORADIOBUTTON, 0, 0, 0, 0, hwnd, NULL, hInstance, 0);
+	if (centyRadioButton == NULL) {
+		MessageBox(NULL, TEXT("Some problem with CreateWindowEx by centyRadioButton"), className, MB_OK);
+		return 1;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	UnregisterClass(className, hInstance);
+
+	return msg.wParam;
+}

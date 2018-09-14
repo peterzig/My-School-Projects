@@ -1,0 +1,29 @@
+// poleobwodkolo.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <conio.h>
+#define _USE_MATH_DEFINES 
+#include <math.h>
+
+
+int main()
+{	
+	float r, y, z;
+	M_PI;
+	printf("+-----------------------------------------+\n");
+	printf("|  Program obliczajacy pole i obwod kola  |\n");
+	printf("|                        made by Peterzig |\n");
+	printf("+-----------------------------------------+\n");
+	printf("Podaj promien kola r = ");
+	scanf("%f", &r);
+	y = M_PI*r*r;
+	z = 2 * M_PI*r;
+	printf("+--------------------------------+\n");
+	printf("|       Pole     |      Obwod    |\n");
+	printf("+--------------------------------+\n");
+	printf("|           %5.3f|          %5.3f|\n", y,z );
+	printf("+--------------------------------+\n");
+	_getch();
+    return 0;
+}

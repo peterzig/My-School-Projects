@@ -1,0 +1,97 @@
+#include <Windows.h>
+//-------Zmienne i funkcje globalne.
+//-------Zmienne globalne.
+TCHAR EndCaption[] = TEXT("Zamykanie aplikacji");
+TCHAR EndText[] = TEXT("Czy chcesz zamknąć aplikację?");
+TCHAR WindowText[] = TEXT("Nowa nazwa okna");
+
+//Komunikaty
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	switch (msg)
+	{
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		RECT rect;
+		hdc = BeginPaint(hwnd, &ps);
+		GetClientRect(hwnd, &rect);
+		DrawText(hdc, TEXT("TEKST NA ŚRODKU NA GÓRZE"), -1, &rect, DT_SINGLELINE | DT_CENTER);
+		DrawText(hdc, TEXT("TEKST Z LEWEJ STRONY OKNA"), -1, &rect, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+		DrawText(hdc, TEXT("TEKST NA ŚRODKU OKNA"), -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+		DrawText(hdc, TEXT("TEKST Z PRAWEJ STRONY OKNA"), -1, &rect, DT_SINGLELINE | DT_RIGHT | DT_VCENTER);
+		DrawText(hdc, TEXT("TEKST NA ŚRODKU NA DOLE"), -1, &rect, DT_SINGLELINE | DT_CENTER | DT_BOTTOM);
+		EndPaint(hwnd, &ps);
+		break;
+	}
+
+	case WM_LBUTTONDOWN:
+		hdc = GetDC(hwnd);
+		SetWindowText(hwnd, WindowText);
+		ReleaseDC(hwnd, hdc);
+		break;
+
+	case WM_CREATE:
+		break;
+
+	case WM_CLOSE:
+		if (MessageBox(hwnd, EndText, EndCaption, MB_YESNO) == IDYES) {
+			DestroyWindow(hwnd);
+		}
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+//Main
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR ilCmdLine, int nCmdShow)
+{
+	WNDCLASSEX window;
+	HWND hwnd = NULL;
+	MSG msg;
+	TCHAR Class_Name[] = TEXT("OKNO_TEST");
+	TCHAR Title[] = TEXT("Typowa Aplikacja WinAPI");
+
+	window.cbClsExtra = NULL;
+	window.cbSize = sizeof(WNDCLASSEX);
+	window.cbWndExtra = NULL;
+	window.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	window.hCursor = LoadCursor(NULL, IDC_ARROW);
+	window.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	window.hIconSm = NULL;
+	window.hInstance = hInstance;
+	window.lpfnWndProc = WndProc;
+	window.lpszClassName = Class_Name;
+	window.lpszMenuName = 0;
+	window.style = CS_VREDRAW | CS_HREDRAW;
+
+	if (!RegisterClassEx(&window))
+	{
+		MessageBox(NULL, TEXT("Nie udało się zarejestrować klasy okna!"), Class_Name, MB_ICONERROR);
+		return 0;
+	}
+
+	hwnd = ((CreateWindowEx(WS_EX_WINDOWEDGE, Class_Name, Title,
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT,
+		800, 600, NULL, NULL, hInstance, NULL)));
+
+	ShowWindow(hwnd, nCmdShow);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	UnregisterClass(Class_Name, hInstance);
+	return msg.wParam;
+}

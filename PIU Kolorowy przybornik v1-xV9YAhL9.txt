@@ -1,0 +1,129 @@
+#include <windows.h>
+
+TCHAR NazwaKlasy[] = TEXT("Klasa Okienka");
+MSG Komunikat;
+
+// OBSŁUGA ZDARZEŃ
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	static RECT rect;
+	HBRUSH brush = (HBRUSH)GetStockObject(DC_BRUSH);
+	static COLORREF kolory[18] = {
+		RGB(255, 255, 255),
+		RGB(255, 0, 0),
+		RGB(0, 255, 0),
+		RGB(0, 0, 255),
+		RGB(100, 20, 60),
+		RGB(233, 35, 35),
+		RGB(20, 223, 210),
+		RGB(94, 20, 223),
+		RGB(217, 223, 20),
+		RGB(255, 137, 0),
+		RGB(0, 0, 0),
+		RGB(20, 20, 20),
+		RGB(40, 40, 40),
+		RGB(60, 60, 60),
+		RGB(80, 80, 80),
+		RGB(100, 100, 100),
+		RGB(120, 120, 120),
+		RGB(0, 0, 0)
+	};
+
+	switch (msg)
+	{
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		GetClientRect(hwnd, &rect);
+		HDC hdc = BeginPaint(hwnd, &ps);
+		SetDCBrushColor(hdc, RGB(254, 254, 254));
+		FillRect(hdc, &rect, brush);
+		SetDCBrushColor(hdc, RGB(180, 180, 180));
+		SelectObject(hdc, brush);
+		Rectangle(hdc, rect.right*0.75, rect.top, rect.right, rect.bottom);
+
+
+		for (UINT i = 0, przerwa = 0; i < 8; i++, przerwa += rect.bottom*0.08)
+		{
+			SetDCBrushColor(hdc, kolory[i]);
+			SelectObject(hdc, brush);
+			Rectangle(hdc, rect.right*0.8, (rect.bottom*0.001) + (rect.bottom*0.05) + przerwa, rect.right - (0.15*rect.right), (rect.bottom*0.12) + przerwa);
+		}
+		for (UINT i = 0, przerwa = 0; i < 8; i++, przerwa += rect.bottom*0.08)
+		{
+			SetDCBrushColor(hdc, kolory[i + 8]);
+			SelectObject(hdc, brush);
+			Rectangle(hdc, rect.right*0.9, (rect.bottom*0.001) + (rect.bottom*0.05) + przerwa, rect.right - (0.05*rect.right), (rect.bottom*0.12) + przerwa);
+		}
+		EndPaint(hwnd, &ps);
+		break;
+	}
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	return 0;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	// WYPEŁNIANIE STRUKTURY
+	WNDCLASSEX wc;
+
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hInstance;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = NazwaKlasy;
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+
+	// REJESTROWANIE KLASY OKNA
+	if (!RegisterClassEx(&wc))
+	{
+		MessageBox(NULL, "Wysoka Komisja odmawia rejestracji tego okna!", "Niestety...",
+			MB_ICONEXCLAMATION | MB_OK);
+		return 1;
+	}
+
+	// TWORZENIE OKNA
+	HWND hwnd;
+
+	hwnd = CreateWindowEx(WS_EX_CLIENTEDGE, NazwaKlasy, TEXT("Oto okienko"), WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, NULL);
+
+	if (hwnd == NULL)
+	{
+		MessageBox(NULL, "Okno odmówiło przyjścia na świat!", "Ale kicha...", MB_ICONEXCLAMATION);
+		return 1;
+	}
+
+	HWND g_hPrzycisk = CreateWindowEx(0, TEXT("BUTTON"), TEXT("Nasz przycisk"), WS_CHILD | WS_VISIBLE,
+		100, 100, 150, 30, hwnd, NULL, hInstance, NULL);
+
+	ShowWindow(hwnd, nCmdShow); // Pokaż okienko...
+	UpdateWindow(hwnd);
+
+	// Pętla komunikatów
+	while (GetMessage(&Komunikat, NULL, 0, 0) > 0)
+	{
+		TranslateMessage(&Komunikat);
+		DispatchMessage(&Komunikat);
+	}
+	return Komunikat.wParam;
+}

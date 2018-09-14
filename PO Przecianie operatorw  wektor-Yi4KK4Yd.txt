@@ -1,0 +1,305 @@
+#include <stdio.h>
+#include <conio.h>
+#include <malloc.h>
+#include <cmath>
+ 
+class Vector
+{
+        public:
+                static const int increment = 1;
+ 
+                Vector();
+                Vector(const int, const double);
+                Vector(const Vector&);
+ 
+                Vector& operator = (const Vector&);
+                Vector operator + (const Vector&) const;
+                Vector operator - (const Vector&) const;
+                Vector operator * (const Vector&) const;
+ 
+                double& operator [] (unsigned int i);
+                const double operator [] (unsigned int i) const;
+                double& operator () (unsigned int i);
+                const double operator () (unsigned int i) const;
+ 
+                operator int () const;
+ 
+                size_t Size() const;
+                void Display() const;
+                Vector& PushBack(const double);
+ 
+        private:
+                double *tab;
+                unsigned int size;
+};
+ 
+Vector::Vector()
+{
+        size = 0;
+        tab = NULL;
+}
+ 
+Vector::Vector(const int N, const double M)
+{
+        size = 0;
+        tab = (double*)malloc(N*sizeof(double));
+        if(tab != NULL)
+        {
+                size = N;
+                for(unsigned int i = 0; i < size; i++)
+                {
+                        tab[i] = M;
+                }
+        }
+}
+ 
+Vector::Vector(const Vector& vect)
+{
+        size = 0;
+        tab = (double*)malloc(vect.size*sizeof(double));
+        if(tab != NULL)
+        {
+                size = vect.size;
+                for(unsigned int i = 0; i < size; i++)
+                {
+                        tab[i] = vect.tab[i];
+                }
+        }
+}
+ 
+Vector& Vector::operator = (const Vector& vect)
+{
+        size = 0;
+        tab = (double*)malloc(vect.size*sizeof(double));
+        if(tab != NULL)
+        {
+                size = vect.size;
+                for(unsigned int i = 0; i < size; i++)
+                {
+                        tab[i] = vect.tab[i];
+                }
+        }
+        return *this;
+}
+ 
+Vector Vector::operator + (const Vector& vect) const
+{
+        Vector Vect;
+        if(size >= vect.size)
+        {
+                for(unsigned int i = 0; i < size; i++)
+                {
+                        if(i <= vect.size)
+                        {
+                                Vect.PushBack(tab[i] + vect.tab[i]);
+                        }
+                        else
+                        {
+                                Vect.PushBack(tab[i]);
+                        }
+                }
+        }
+        else
+        {
+                for(unsigned int i = 0; i < vect.size; i++)
+                {
+                        if(i <= size)
+                        {
+                                Vect.PushBack(tab[i] + vect.tab[i]);
+                        }
+                        else
+                        {
+                                Vect.PushBack(vect.tab[i]);
+                        }
+                }
+        }
+        return Vect;
+}
+ 
+Vector Vector::operator - (const Vector& vect) const
+{
+        Vector Vect;
+        if(size >= vect.size)
+        {
+                for(unsigned int i = 0; i < size; i++)
+                {
+                        if(i <= vect.size)
+                        {
+                                Vect.PushBack(tab[i] - vect.tab[i]);
+                        }
+                        else
+                        {
+                                Vect.PushBack(tab[i]);
+                        }
+                }
+        }
+        else
+        {
+                for(unsigned int i = 0; i < vect.size; i++)
+                {
+                        if(i <= size)
+                        {
+                                Vect.PushBack(tab[i] - vect.tab[i]);
+                        }
+                        else
+                        {
+                                Vect.PushBack(vect.tab[i]);
+                        }
+                }
+        }
+        return Vect;
+}
+ 
+Vector Vector::operator * (const Vector& vect) const
+{
+        Vector Vect;
+        if(size >= vect.size)
+        {
+                for(unsigned int i = 0; i < size; i++)
+                {
+                        if(i <= vect.size)
+                        {
+                                Vect.PushBack(tab[i] * vect.tab[i]);
+                        }
+                        else
+                        {
+                                Vect.PushBack(tab[i]);
+                        }
+                }
+        }
+        else
+        {
+                for(unsigned int i = 0; i < vect.size; i++)
+                {
+                        if(i <= size)
+                        {
+                                Vect.PushBack(tab[i] * vect.tab[i]);
+                        }
+                        else
+                        {
+                                Vect.PushBack(vect.tab[i]);
+                        }
+                }
+        }
+        return Vect;
+}
+ 
+double& Vector::operator [] (unsigned int i)
+{
+        return tab[i];
+}
+ 
+const double Vector::operator [] (unsigned int i) const
+{
+        return tab[i];
+}
+ 
+double& Vector::operator () (unsigned int i)
+{
+        return tab[i];
+}
+ 
+const double Vector::operator () (unsigned int i) const
+{
+        return tab[i];
+}
+ 
+size_t Vector::Size() const
+{
+        return size;
+}
+ 
+Vector::operator int () const
+{
+        return ceil(tab[0]);
+}
+ 
+Vector& Vector::PushBack(const double value)
+{
+        tab = (double*)realloc(tab, (size + increment) * sizeof(double));
+        if(tab)
+        {
+                tab[size] = value;
+                ++size;
+        }
+        return *this;
+}
+ 
+void Vector::Display() const
+{
+        printf("[");
+        for(unsigned int i = 0; i < size; i++)
+        {
+                if(i == size - 1)
+                {
+                        printf("%.2lf", tab[i]);
+                }
+                else
+                {
+                        printf("%.2lf, ", tab[i]);
+                }
+        }
+        printf("]\n");
+}
+ 
+int main()
+{
+        Vector Wektor1, Wektor2(5, 15.0);
+        Vector Wektor3 = Wektor2;
+ 
+        printf("Wektor 1: \n");
+        Wektor1.Display();
+        printf("Rozmiar - %i\n\n", Wektor1.Size());
+ 
+        printf("Wektor 2: \n");
+        Wektor2.Display();
+        printf("Rozmiar - %i\n\n", Wektor2.Size());
+ 
+        printf("Wektor 3: \n");
+        Wektor3.Display();
+        printf("Rozmiar - %i\n\n", Wektor3.Size());
+ 
+        for(unsigned int i = 0; i < 3; i++)
+        {
+                Wektor1.PushBack((i + 1) * 6.32);
+                Wektor3.PushBack((i + 1) * 1.26);
+        }
+ 
+        printf("Wektor 1: \n");
+        Wektor1.Display();
+        printf("Rozmiar - %i\n\n", Wektor1.Size());
+ 
+        printf("Wektor 2: \n");
+        Wektor2.Display();
+        printf("Rozmiar - %i\n\n", Wektor2.Size());
+ 
+        printf("Wektor 3: \n");
+        Wektor3.Display();
+        printf("Rozmiar - %i\n\n", Wektor3.Size());
+ 
+        Wektor2 = Wektor1 + Wektor2;
+ 
+        printf("Wektor 2: \n");
+        Wektor2.Display();
+        printf("Rozmiar - %i\n\n", Wektor2.Size());
+ 
+        Wektor3 = (Wektor1 - Wektor3) * Wektor2;
+ 
+        printf("Wektor 3: \n");
+        Wektor3.Display();
+        printf("Rozmiar - %i\n\n", Wektor3.Size());
+ 
+        printf("Wektor 3 -> tab[0] = %.2lf\n", Wektor3[0]);
+       
+        Wektor3[0] = 14.04;
+        Wektor3(1) = 3.33;
+ 
+        printf("Wektor 3 -> tab[0] = %.2lf\n", Wektor3[0]);
+        printf("Wektor 3 -> tab[1] = %.2lf\n", Wektor3(1));
+ 
+        int zeroIndex = (int) Wektor3;
+        printf("Wektor3, Tab[0] INT = %i", zeroIndex);
+ 
+        _getch();
+        return 0;
+}
